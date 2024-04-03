@@ -41,5 +41,15 @@
         {% endif %}
     {% endif %}
 
+    // Toggle for google translate
+    $('#global-language').on('show.bs.collapse', function () {
+        $('#global-search').collapse('hide');
+        $('#nav-primary').collapse('hide');
+    });
 
+    $('#global-language').on('shown.bs.collapse', function () {
+        $('.goog-te-combo').focus();
+    }).on('show.bs.collapse', function () {
+        $('.goog-te-combo').blur();
+    });
 </script>

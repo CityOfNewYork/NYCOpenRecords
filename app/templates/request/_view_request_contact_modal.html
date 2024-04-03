@@ -8,7 +8,7 @@
             </div>
             <div class="modal-body">
                 <form id="contact-form" role="form" action="/request/contact/{{ request.id }}" method="POST"
-                    data-parsley-focus="first">
+                    data-parsley-focus="first" onsubmit="submit.disabled = true; return true;">
                     {{ contact_agency_form.csrf_token }}
 
                     {{ contact_agency_form.first_name.label }}

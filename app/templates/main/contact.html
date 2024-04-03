@@ -33,14 +33,26 @@
                 <p id="message-character-count" class="character-counter">5000 characters remaining</p>
 
                 <br>
-                {{ form.recaptcha }}
-                <input id="submit" name="submit" type="submit" value="Send" aria-label="Submit button">
+                {% if config['RECAPTCHA_ENABLED'] and not current_user.is_agency %}
+                    <input id="send"
+                           name="send"
+                           type="submit"
+                           value="Send"
+                           aria-label="Send button"
+                           class="g-recaptcha"
+                           data-sitekey='{{ config['RECAPTCHA_PUBLIC_KEY'] }}'
+                           data-callback='onSubmitTechnicalSupport'
+                           data-action='technicalSupport'>
+                {% else %}
+                    <input id="send" name="send" type="submit" value="Send" aria-label="Send button">
+                {% endif %}
             </form>
         </div>
     </div>
 {% endblock %}
 
 {% block custom_script %}
+    <script type="text/javascript" src="https://www.google.com/recaptcha/api.js"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/parsley.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/request/contact.js') }}"></script>
 {% endblock %}

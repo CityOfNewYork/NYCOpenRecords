@@ -29,7 +29,6 @@ from app.constants import (
 )
 from app.lib.db_utils import get_agency_choices
 from app.models import Reasons, LetterTemplates, EnvelopeTemplates, CustomRequestForms
-from app.lib.recaptcha_utils import Recaptcha3Field
 
 
 class PublicUserRequestForm(FlaskForm):
@@ -53,8 +52,6 @@ class PublicUserRequestForm(FlaskForm):
 
     # File Upload
     request_file = FileField("Upload File (optional, must be less than 20 Mb)")
-
-    recaptcha = Recaptcha3Field(action="TestAction", execute_on_load=True)
 
     # Submit Button
     submit = SubmitField("Submit Request")
@@ -122,8 +119,6 @@ class AgencyUserRequestForm(FlaskForm):
     # File Upload
     request_file = FileField("Upload File (optional, must be less than 20 Mb)")
 
-    recaptcha = Recaptcha3Field(action="TestAction", execute_on_load=True)
-
     # Submit Button
     submit = SubmitField("Submit Request")
 
@@ -180,7 +175,6 @@ class AnonymousRequestForm(FlaskForm):
     # File Upload
     request_file = FileField("Upload File (optional, must be less than 20 Mb)")
 
-    recaptcha = Recaptcha3Field(action="TestAction", execute_on_load=True)
     submit = SubmitField("Submit Request")
 
     def __init__(self):
@@ -495,12 +489,19 @@ class SearchRequestsForm(FlaskForm):
                 self.agency_user.default = current_user.get_id()
 
             if default_agency.agency_features["custom_request_forms"]["enabled"]:
-                self.request_type.choices = [
+                active_forms = [
                     (custom_request_form.form_name, custom_request_form.form_name)
                     for custom_request_form in CustomRequestForms.query.filter_by(
-                        agency_ein=default_agency.ein
-                    ).order_by(asc(CustomRequestForms.category), asc(CustomRequestForms.id)).all()
+                        agency_ein=default_agency.ein, is_active=True
+                    ).order_by(asc(CustomRequestForms.category), asc(CustomRequestForms.order)).all()
                 ]
+                inactive_forms = [
+                    (custom_request_form.form_name, "(Inactive) " + custom_request_form.form_name)
+                    for custom_request_form in CustomRequestForms.query.filter_by(
+                        agency_ein=default_agency.ein, is_active=False
+                    ).order_by(asc(CustomRequestForms.category), asc(CustomRequestForms.order)).all()
+                ]
+                self.request_type.choices = active_forms + inactive_forms
                 self.request_type.choices.insert(0, ("", "All"))
 
             # process form for default values
@@ -529,7 +530,3 @@ class ContactAgencyForm(FlaskForm):
                 request.requester.notification_email or request.requester.email
             )
         self.subject.data = "Inquiry about {}".format(request.id)
-
-
-class TechnicalSupportForm(FlaskForm):
-    recaptcha = Recaptcha3Field(action="TestAction", execute_on_load=True)

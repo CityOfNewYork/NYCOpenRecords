@@ -229,8 +229,18 @@
                     </div>
                 </div>
                 <input type="hidden" name="tz-name">
-                {{ form.recaptcha }}
-                {{ form.submit(id="submit", class="btn-primary") }}
+                {% if config['RECAPTCHA_ENABLED'] %}
+                    <input id="submit"
+                           class="g-recaptcha btn-primary"
+                           value="Submit Request"
+                           aria-label="Submit request button"
+                           type="submit"
+                           data-sitekey='{{ config['RECAPTCHA_PUBLIC_KEY'] }}'
+                           data-callback='onSubmitRequest'
+                           data-action='newRequestAnon'>
+                {% else %}
+                    {{ form.submit(id="submit", class="btn-primary") }}
+                {% endif %}
                 {% include 'request/_pii_warning_modal.html' %}
                 <span id="processing-submission" hidden>
                     <img src="{{ url_for("static", filename="img/loading.gif") }}"
@@ -243,6 +253,7 @@
 {% endblock %}
 
 {% block custom_script %}
+    <script type="text/javascript" src="https://www.google.com/recaptcha/api.js"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery-ui.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/parsley.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery.mask.js') }}"></script>

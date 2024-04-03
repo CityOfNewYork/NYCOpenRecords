@@ -147,9 +147,11 @@ class Config:
     MAGIC_FILE = (os.environ.get('MAGIC_FILE') or
                   os.path.join(os.path.abspath(os.path.dirname(__file__)), 'magic'))
 
-    # ReCaptcha
-    RECAPTCHA3_PUBLIC_KEY = os.environ.get("RECAPTCHA_SITE_KEY_V3", "")
-    RECAPTCHA3_PRIVATE_KEY = os.environ.get("RECAPTCHA_SECRET_KEY_V3", "")
+    # ReCaptcha Settings
+    RECAPTCHA_ENABLED = os.environ.get("RECAPTCHA_ENABLED") == "True"
+    RECAPTCHA_PUBLIC_KEY = os.environ.get("RECAPTCHA_PUBLIC_KEY")
+    RECAPTCHA_PRIVATE_KEY = os.environ.get("RECAPTCHA_PRIVATE_KEY")
+    RECAPTCHA_THRESHOLD = float(os.environ.get("RECAPTCHA_THRESHOLD"))
 
     # ElasticSearch settings
     ELASTICSEARCH_HOST = os.environ.get('ELASTICSEARCH_HOST') or "localhost:9200"

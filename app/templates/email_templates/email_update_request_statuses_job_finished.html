@@ -1,0 +1,6 @@
+<p>{{ timestamp }}</p>
+
+{% for request in request_errors %}
+    <p><strong>{{ request[0] }}</strong></p>
+    <p>{{ request[1] | safe }}</p>
+{% endfor %}

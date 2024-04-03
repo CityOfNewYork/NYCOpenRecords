@@ -12,12 +12,20 @@
 "use strict";
 
 $(document).ready(function () {
-    $(window).load(function () {
-        // Determine if the agencyRequestInstructions and custom request forms need to be shown on page load.
-        getRequestAgencyInstructions();
-        // Check for custom request forms on page load (browser back button behavior).
-        getCustomRequestForms($("#request-agency").val());
-    });
+    // Reload the page if it was loaded from a cached version (back browser button).
+    // Used to clear out form data and ensure custom request forms are properly loaded.
+    (function () {
+        window.onpageshow = function (event) {
+            if (event.persisted) {
+                window.location.reload();
+            }
+        };
+    })();
+
+    // Determine if the agencyRequestInstructions and custom request forms need to be shown on page load.
+    getRequestAgencyInstructions();
+    // Check for custom request forms on page load (browser back button behavior).
+    getCustomRequestForms($("#request-agency").val());
 
     $("input[name='tz-name']").val(jstz.determine().name());
 

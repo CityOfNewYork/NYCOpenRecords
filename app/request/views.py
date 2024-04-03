@@ -60,6 +60,7 @@ from app.user_request.forms import (
 from app.user_request.utils import get_current_point_of_contact
 from app import sentry
 import json
+import requests
 
 
 @request.route("/new", methods=["GET", "POST"])
@@ -96,6 +97,38 @@ def new():
     new_request_template = "request/new_request_" + template_suffix
 
     if flask_request.method == "POST":
+        if current_app.config['RECAPTCHA_ENABLED'] and not current_user.is_agency:
+            try:
+                # Verify recaptcha token and return error if failed
+                recaptcha_response = requests.post(
+                    url='https://www.google.com/recaptcha/api/siteverify?secret={}&response={}'
+                        .format(current_app.config["RECAPTCHA_PRIVATE_KEY"],
+                                flask_request.form["g-recaptcha-response"])).json()
+
+                if recaptcha_response['success'] is False or recaptcha_response['score'] < current_app.config[
+                    "RECAPTCHA_THRESHOLD"]:
+                    current_app.logger.exception("Recaptcha failed to verify response.\n\n{}".format(recaptcha_response))
+                    flash('Recaptcha failed, please try again.', category='danger')
+                    return render_template(
+                        new_request_template,
+                        form=form,
+                        kiosk_mode=kiosk_mode,
+                        category=category,
+                        agency=agency,
+                        title=title,
+                    )
+            except:
+                current_app.logger.exception("Recaptcha failed to get a response.")
+                flash('Recaptcha failed, please try again.', category='danger')
+                return render_template(
+                    new_request_template,
+                    form=form,
+                    kiosk_mode=kiosk_mode,
+                    category=category,
+                    agency=agency,
+                    title=title,
+                )
+
         # validate upload with no request id available
         upload_path = None
         if form.request_file.data:
@@ -107,8 +140,23 @@ def new():
                 )
 
         custom_metadata = json.loads(
-            flask_request.form.get("custom-request-forms-data", {})
+            flask_request.form.get("custom-request-forms-data", '{}')
         )
+        # validate that custom_metadata JSON has data if custom request forms are enabled for the agency
+        agency_ein = (form.request_agency.data
+                      if form.request_agency.data != "None"
+                      else current_user.default_agency_ein)
+        agency_object = Agencies.query.filter_by(ein=agency_ein).first()
+        if agency_object.agency_features["custom_request_forms"]["enabled"] and not custom_metadata:
+            flash('An unexpected error occurred. Please reload the page and try submitting your request again.',
+                  category='danger')
+            return redirect(url_for("request.new"))
+        # validate that form_name exists in custom_metadata JSON
+        for key,value in custom_metadata.items():
+            form_name = value.get('form_name', None)
+            if not form_name:
+                flash('An unexpected error occurred. Please try submitting your request again.', category='danger')
+                return redirect(url_for("request.new"))
         tz_name = (
             escape(flask_request.form["tz-name"])
             if flask_request.form["tz-name"]
@@ -492,6 +540,7 @@ def contact_agency(request_id):
         )
         flash("Your message has been sent.", category="success")
     else:
+        current_app.logger.exception("Contact the agency error: {}\n\n{}".format(current_request.id, form.errors))
         flash(
             "There was a problem sending your message. Please try again.",
             category="danger",
