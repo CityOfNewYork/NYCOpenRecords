@@ -1900,6 +1900,37 @@
         }
       },
       "acronym": "FISA"
+    },
+    {
+      "ein": "0215",
+      "parent_ein": "215",
+      "categories": [
+        "Culture & Recreation"
+      ],
+      "name": "Commission on Racial Equity",
+      "next_request_number": 1,
+      "default_email": "askcore@core.nyc.gov",
+      "appeals_email": "askcore@core.nyc.gov",
+      "is_active": true,
+      "agency_features": {
+        "letters": {
+          "generate_letters": false
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "categorized": false,
+          "expand_by_default": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "multiple_request_types": false,
+          "description_hidden_by_default": true
+        },
+        "monitor_agency_requests": [],
+        "specific_request_instructions": {
+          "text": ""
+        }
+      },
+      "acronym": "CORE"
     }
   ]
 }
