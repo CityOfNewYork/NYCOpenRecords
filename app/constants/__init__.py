@@ -9,6 +9,7 @@ CATEGORIES = [
     ('Culture & Recreation', 'Culture & Recreation'),
     ('Education', 'Education'),
     ('Environment', 'Environment'),
+    ('Equity', 'Equity'),
     ('Health', 'Health'),
     ('Housing & Development', 'Housing & Development'),
     ('Public Safety', 'Public Safety'),
