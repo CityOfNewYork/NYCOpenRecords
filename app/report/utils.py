@@ -59,7 +59,9 @@ def generate_acknowledgment_report(self, current_user_guid: str, date_from: date
                'Address 2',
                'City',
                'State',
-               'Zipcode')
+               'Zipcode',
+               'Requester Title',
+               'Requester Organization')
     data_from_dates = []
     all_data = []
 
@@ -100,6 +102,8 @@ def generate_acknowledgment_report(self, current_user_guid: str, date_from: date
                 Markup(request.requester.mailing_address.get('city')).unescape(),
                 request.requester.mailing_address.get('state'),
                 request.requester.mailing_address.get('zip'),
+                Markup(request.requester.title).unescape(),
+                Markup(request.requester.organization).unescape()
             ))
         all_data.append((
             request.id,
@@ -118,6 +122,8 @@ def generate_acknowledgment_report(self, current_user_guid: str, date_from: date
             Markup(request.requester.mailing_address.get('city')).unescape(),
             request.requester.mailing_address.get('state'),
             request.requester.mailing_address.get('zip'),
+            Markup(request.requester.title).unescape(),
+            Markup(request.requester.organization).unescape()
         ))
     date_from_string = date_from.strftime('%Y%m%d')
     date_to_string = date_to.strftime('%Y%m%d')
