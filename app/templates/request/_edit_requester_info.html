@@ -4,7 +4,7 @@
     <h4>
         <a data-target="#requesterModal" data-toggle="modal" class="MainNavText" id="MainNavHelp"
            href="#requesterModal">
-            {% if request.requester.first_name == '' or request.requester.last_name == '' %}
+            {% if request.requester.first_name == "" or request.requester.last_name == "" %}
                 Missing Name
             {% else %}
                 {{ request.requester.name | title | safe }}

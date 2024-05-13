@@ -11,7 +11,7 @@
         );
         $("#continue-to-profile").attr(
             "href",
-            webServicesUrl + "/account/user/profile.htm?returnOnSave=true&target=" + btoa(window.location.origin + '/auth/logout')
+            webServicesUrl + "/account/user/profile.htm?returnOnSave=true&target=" + btoa(window.location.origin + "/auth/logout")
         );
     {% endif %}
 
@@ -54,7 +54,7 @@
         {% if duplicate_session %}
             $("#concurrent-session-modal").modal("show");
         {% endif %}
-        {% if current_user.first_name == '' or current_user.last_name == '' %}
+        {% if current_user.is_public and (current_user.first_name == "" or current_user.last_name == "") %}
             $("#missing-name-modal").modal("show");
         {% endif %}
     {% endif %}
