@@ -9,6 +9,10 @@
             "href",
             webServicesUrl + "/account/user/profile.htm?returnOnSave=true&target=" + btoa(window.location.href)
         );
+        $("#continue-to-profile").attr(
+            "href",
+            webServicesUrl + "/account/user/profile.htm?returnOnSave=true&target=" + btoa(window.location.origin + '/auth/logout')
+        );
     {% endif %}
 
     $.ajaxSetup({
@@ -49,6 +53,9 @@
         });
         {% if duplicate_session %}
             $("#concurrent-session-modal").modal("show");
+        {% endif %}
+        {% if current_user.first_name == '' or current_user.last_name == '' %}
+            $("#missing-name-modal").modal("show");
         {% endif %}
     {% endif %}
 
