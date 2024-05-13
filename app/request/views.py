@@ -164,6 +164,9 @@ def new():
             else current_app.config["APP_TIMEZONE"]
         )
         if current_user.is_public:
+            if current_user.first_name == '' or current_user.last_name == '':
+                flash('Missing first or last name. Please update your name on the Profile page.', category='danger')
+                return redirect(url_for("request.new"))
             request_id = create_request(
                 escape(form.request_title.data),
                 escape(form.request_description.data),
