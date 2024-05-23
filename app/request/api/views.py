@@ -218,18 +218,21 @@ def get_request_responses():
         # If the user is an agency user assigned to the request, all responses can be retrieved.
         responses = Responses.query.filter(
             Responses.request_id == current_request.id,
-            ~Responses.id.in_([cm.method_id for cm in CommunicationMethods.query.all()]),
             Responses.type != response_type.EMAIL,
             Responses.deleted == False
         ).order_by(
             desc(Responses.date_modified)
         ).all()
+        # Remove determination letters, done post Responses query to reduce performance overheard.
+        # Slow performance when doing a nested query with Responses and CommunicationMethods.
+        for index, response in enumerate(responses):
+            if response.type == response_type.LETTER and response.is_determination_letter:
+                del responses[index]
     elif current_user == current_request.requester:
         # If the user is the requester, then only responses that are "Release and Private" or "Release and Public"
         # can be retrieved.
         responses = Responses.query.filter(
             Responses.request_id == current_request.id,
-            ~Responses.id.in_([cm.method_id for cm in CommunicationMethods.query.all()]),
             Responses.type != response_type.EMAIL,
             Responses.deleted == False,
             Responses.privacy.in_([response_privacy.RELEASE_AND_PRIVATE, response_privacy.RELEASE_AND_PUBLIC])
@@ -242,7 +245,6 @@ def get_request_responses():
         # "Release and Public" whose release date is not in the future can be retrieved.
         responses = Responses.query.filter(
             Responses.request_id == current_request.id,
-            ~Responses.id.in_([cm.method_id for cm in CommunicationMethods.query.all()]),
             Responses.type != response_type.EMAIL,
             Responses.deleted == False,
             Responses.privacy.in_([response_privacy.RELEASE_AND_PUBLIC]),

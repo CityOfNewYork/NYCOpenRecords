@@ -1368,6 +1368,23 @@ class Responses(db.Model):
         )
 
     @property
+    def is_determination_letter(self):
+        """
+        Determine if a response is a determination letter or not.
+
+        Letters created as part of a Determination will appear in the CommunicationMethod table
+        response_id will be the Determination response and method_id will be the corresponding Letter response.
+
+        Letters created using the Generate Letter action will not appear in the CommunicationMethod table.
+        """
+        method_id = CommunicationMethods.query.filter_by(
+            method_id=self.id
+        ).one_or_none()
+        if method_id is None:
+            return False
+        return True
+
+    @property
     def event_timestamp(self):
         """
         This function runs a query on the Events table to get all associated event rows for a response and returns
