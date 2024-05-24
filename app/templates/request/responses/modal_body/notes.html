@@ -1,15 +1,14 @@
-<div>
-    Created By:
-    {% if current_user == response.creator %}
-        You
-    {% elif current_user.is_agency %}
-        {{ response.creator.name }}
-    {% else %}
-        Agency
-    {% endif %}
-</div>
-<br>
-
+{#<div>#}
+{#    Created By:#}
+{#    {% if current_user == response.creator %}#}
+{#        You#}
+{#    {% elif current_user.is_agency %}#}
+{#        {{ response.creator.name }}#}
+{#    {% else %}#}
+{#        Agency#}
+{#    {% endif %}#}
+{#</div>#}
+{#<br>#}
 {% if (edit_response_permission or edit_privacy_response_permission) and is_editable
 and current_request.status != request_status.CLOSED %}
     <form id="note-update-{{ response.id }}" class="note-update note-form"
@@ -51,8 +50,7 @@ and current_request.status != request_status.CLOSED %}
 
 <script>
     {% if not ((edit_response_permission or edit_privacy_response_permission) and is_editable and current_request.status != request_status.CLOSED) or not edit_response_permission %}
-        let responseModalBody = $('#' + '{{ modal_html_id }}');
-        responseModalBody.html({{ response.content | tojson }});
-        responseModalBody.html(responseModalBody.text());
+        $('#' + '{{ modal_html_id }}').html({{ response.content | tojson }});
+        $('#' + '{{ modal_html_id }}').html($('#' + '{{ modal_html_id }}').text());
     {% endif %}
 </script>

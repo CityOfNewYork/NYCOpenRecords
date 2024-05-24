@@ -1077,7 +1077,7 @@ class Events(db.Model):
 
     __tablename__ = "events"
     id = db.Column(db.Integer, primary_key=True)
-    request_id = db.Column(db.String(19), db.ForeignKey("requests.id"))
+    request_id = db.Column(db.String(19), db.ForeignKey("requests.id"), index=True)
     user_guid = db.Column(db.String(64))
     response_id = db.Column(db.Integer, db.ForeignKey("responses.id"))
     type = db.Column(db.String(64))
