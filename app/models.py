@@ -1077,7 +1077,7 @@ class Events(db.Model):
 
     __tablename__ = "events"
     id = db.Column(db.Integer, primary_key=True)
-    request_id = db.Column(db.String(19), db.ForeignKey("requests.id"))
+    request_id = db.Column(db.String(19), db.ForeignKey("requests.id"), index=True)
     user_guid = db.Column(db.String(64))
     response_id = db.Column(db.Integer, db.ForeignKey("responses.id"))
     type = db.Column(db.String(64))
@@ -1366,6 +1366,23 @@ class Responses(db.Model):
             if response_type.LETTER in [cm.method_type for cm in communication_methods]
             else response_type.EMAIL
         )
+
+    @property
+    def is_determination_letter(self):
+        """
+        Determine if a response is a determination letter or not.
+
+        Letters created as part of a Determination will appear in the CommunicationMethod table
+        response_id will be the Determination response and method_id will be the corresponding Letter response.
+
+        Letters created using the Generate Letter action will not appear in the CommunicationMethod table.
+        """
+        method_id = CommunicationMethods.query.filter_by(
+            method_id=self.id
+        ).one_or_none()
+        if method_id is None:
+            return False
+        return True
 
     @property
     def event_timestamp(self):
