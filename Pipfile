@@ -80,7 +80,6 @@ webencodings = "*"
 xmlsec = "*"
 business_calendar = "*"
 CairoSVG = "*"
-Flask = "*"
 Flask-Bootstrap = "*"
 Flask-Login = "*"
 Flask-Mail = "*"
@@ -116,10 +115,12 @@ python-magic = "*"
 gunicorn = "*"
 azure-core = "*"
 azure-storage-blob = "*"
-
 # Required for additional formats in tablib
 xlwt = "*"
 xlrd = "*"
+flask = "*"
+lxml-html-clean = "*"
+pytest = "*"
 
 [requires]
 python_version = "3.10.2"
