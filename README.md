@@ -15,6 +15,10 @@ It relies on the following technologies:
 - ElasticSearch v5.2
 - Redis v3.2
 
+The following libraries are needed:
+- [Pango](https://pango.gnome.org/)
+- libmagic
+
 Authentication 
 - OpenRecords currently implements LDAP and OAuth for authentication. For development, you can bypass authentication by setting both `'USE_OAUTH'` and `'USE_LDAP'` to `False`.
     
