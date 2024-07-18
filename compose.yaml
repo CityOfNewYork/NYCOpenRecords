@@ -17,9 +17,26 @@ services:
     ports:
       - "6379:6379"
 
-  web:
+  production:
     build:
       context: .
+      target: production
+    ports:
+      - "8080:8080"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - FLASK_APP=${FLASK_APP}
+      - APP_LAUNCH_DATE=${APP_LAUNCH_DATE}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+    depends_on:
+      - db
+      - redis
+
+  development:
+    build:
+      context: .
+      target: development
     ports:
       - "5000:5000"
     environment:
