@@ -5,7 +5,7 @@ from flask import current_app, request
 from wtforms import ValidationError
 from wtforms.fields import HiddenField
 from wtforms.widgets import HiddenInput
-import markupsafe
+from markupsafe import Markup
 from json import JSONEncoder
 
 logger = logging.getLogger(__name__)

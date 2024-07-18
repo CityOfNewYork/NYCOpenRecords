@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 
 import tablib
 from flask import current_app, url_for, request as flask_request
-import markupsafe
+from markupsafe import Markup
 from sqlalchemy import asc, func, Date, or_
 from sqlalchemy.orm import joinedload
 from urllib.parse import urljoin

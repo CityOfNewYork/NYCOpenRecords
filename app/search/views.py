@@ -4,7 +4,7 @@ from io import StringIO, BytesIO
 import re
 
 from flask import current_app, request, render_template, jsonify
-import markupsafe
+from markupsafe import Markup
 from flask.helpers import send_file
 from flask_login import current_user
 from sqlalchemy.orm import joinedload

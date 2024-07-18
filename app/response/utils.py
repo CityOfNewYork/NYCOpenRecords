@@ -22,7 +22,7 @@ from flask import (
     url_for,
     jsonify,
 )
-import markupsafe
+from markupsafe import Markup, escape
 from flask_login import current_user
 from sqlalchemy.orm import joinedload
 from werkzeug.utils import secure_filename

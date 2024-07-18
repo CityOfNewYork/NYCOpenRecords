@@ -18,7 +18,7 @@ from flask import (
     current_app,
     url_for, request as flask_request,
 )
-import markupsafe
+from markupsafe import escape
 from flask_login import current_user
 from werkzeug.utils import secure_filename
 
