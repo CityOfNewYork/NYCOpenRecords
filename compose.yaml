@@ -1,0 +1,40 @@
+services:
+  db:
+    image: postgres:14-bookworm
+    ports:
+      - "5432:5432"
+    volumes:
+    - db:/var/lib/postgres/data
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+
+  redis:
+    image: redis:7-bookworm
+    volumes:
+      - redis:/data
+    ports:
+      - "6379:6379"
+
+  web:
+    build:
+      context: .
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_DEBUG=1
+      - DATABASE_URL=${DATABASE_URL}
+      - FLASK_APP=${FLASK_APP}
+      - APP_LAUNCH_DATE=${APP_LAUNCH_DATE}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+    depends_on:
+      - db
+      - redis
+
+volumes:
+  db:
+    driver: local
+  redis:
+    driver: local
