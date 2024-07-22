@@ -17,6 +17,19 @@ services:
     ports:
       - "6379:6379"
 
+  celery:
+    build:
+      context: .
+      target: celery
+    command: celery -A app worker -l INFO
+    environment:
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - APP_LAUNCH_DATE=${APP_LAUNCH_DATE}
+    depends_on:
+      - db
+      - redis
+
   production:
     build:
       context: .

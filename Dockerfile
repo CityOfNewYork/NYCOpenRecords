@@ -37,3 +37,8 @@ RUN pip install -r requirements/dev.txt
 EXPOSE 5000
 ENTRYPOINT ["./entrypoint.sh"]
 CMD ["flask", "run", "--host", "0.0.0.0"]
+
+# ================== CELERY =================
+FROM builder as celery
+
+RUN pip install celery[redis]
