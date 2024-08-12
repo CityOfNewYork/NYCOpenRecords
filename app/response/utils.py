@@ -2459,7 +2459,7 @@ def send_file_email(request_id, release_public_links, release_private_links, pri
     ).options(
         joinedload(Requests.agency)
     ).filter_by(id=request_id).one()
-    subject = 'Response Added to {} - File'.format(request_id)
+    subject = 'Response Added to {} - Record'.format(request_id)
     bcc = get_assigned_users_emails(request_id)
     if release_public_links or release_private_links:
         release_date = get_release_date(datetime.utcnow(), RELEASE_PUBLIC_DAYS, tz_name).strftime("%A, %B %d, %Y")
@@ -2472,7 +2472,7 @@ def send_file_email(request_id, release_public_links, release_private_links, pri
                                                                         ))
         safely_send_and_add_email(request_id,
                                   email_content_requester,
-                                  'Response Added to {} - File'.format(request_id),
+                                  'Response Added to {} - Record'.format(request_id),
                                   to=[request.requester.email],
                                   bcc=bcc,
                                   reply_to=request.agency.default_email)
@@ -2485,7 +2485,7 @@ def send_file_email(request_id, release_public_links, release_private_links, pri
                                                    page=page)
             safely_send_and_add_email(request_id,
                                       email_content_agency,
-                                      'File(s) Added to {}'.format(request_id),
+                                      'Record(s) Added to {}'.format(request_id),
                                       bcc=bcc)
     elif private_links:
         email_content_agency = email_content.replace(replace_string,
