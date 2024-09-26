@@ -29,7 +29,6 @@
             function googleTranslateElementInit() {
                 new google.translate.TranslateElement({
                     pageLanguage: 'en',
-                    layout: google.translate.TranslateElement.InlineLayout.SIMPLE
                 }, 'google_translate_element');
             }
         </script>
@@ -47,7 +46,11 @@
                 <div id="google_translate_element"></div>
             </div>
             <div class="col-sm-3"></div>
-
+        </div>
+        <div class="collapse" id="global-language">
+            <div class="narrow py-2">
+                <div id="google_translate_element"></div>
+            </div>
         </div>
     {% endblock %}
     <div class="container-fluid">
@@ -83,7 +86,7 @@
 <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery-ui.js') }}"></script>
 <script type="text/javascript" src="{{ url_for('static', filename='js/request/main.js') }}"></script>
 <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jstz.min.js') }}"></script>
-<script type="text/javascript" src="{{ url_for('static', filename='js/plugins/bootstrap-session-timeout.min.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/plugins/session-timeout.js') }}"></script>
 {% include 'base.js.html' %}
 {% block custom_script %}
 {% endblock %}

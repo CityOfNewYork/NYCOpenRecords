@@ -78,6 +78,7 @@ from app.response.utils import (
     RespInstructionsEditor,
     RespLinkEditor
 )
+from app.upload.utils import complete_upload
 
 
 @response.route('/note/<request_id>', methods=['POST'])
@@ -147,6 +148,11 @@ def response_file(request_id):
     release_private_links = []
     private_links = []
     for file_data in files:
+        quarantine_path = os.path.join(
+            current_app.config['UPLOAD_QUARANTINE_DIRECTORY'],
+            request_id,
+            file_data)
+        complete_upload.delay(current_request.id, quarantine_path, file_data)
         response_obj = add_file(current_request.id,
                                 file_data,
                                 files[file_data]['title'],
@@ -705,7 +711,6 @@ def get_response_content(response_id):
              400 error if response/file not found
     """
     response_ = Responses.query.filter_by(id=response_id, deleted=False).one()
-    request = Requests.query.filter_by(id=response_.request_id).one()
 
     if response_ is not None and response_.type == FILE:
         upload_path = os.path.join(
@@ -723,55 +728,59 @@ def get_response_content(response_id):
             response_.name
         )
         token = flask_request.args.get('token')
-        if fu.exists(filepath):
-            if response_.is_public:
-                # then we just serve the file, anyone can view it
-                @after_this_request
-                def remove(resp):
+        if current_app.config['USE_VOLUME_STORAGE'] and not fu.exists(filepath):
+            return abort(403)
+
+        if response_.is_public:
+            # then we just serve the file, anyone can view it
+            @after_this_request
+            def remove(resp):
+                if current_app.config['USE_VOLUME_STORAGE']:
                     os.remove(serving_path)
-                    return resp
-
-                return fu.send_file(*filepath_parts, as_attachment=True)
-            else:
-                # check presence of token in url
-                if token is not None:
-                    resptok = ResponseTokens.query.filter_by(
-                        token=token, response_id=response_id).first()
-                    if resptok is not None:
-                        if response_.privacy != PRIVATE:
-                            @after_this_request
-                            def remove(resp):
-                                os.remove(serving_path)
-                                return resp
-
-                            return fu.send_file(*filepath_parts, as_attachment=True)
-                        else:
-                            delete_object(resptok)
-
-                # if token not included, nonexistent, or is expired, but user is logged in
-                if current_user.is_authenticated:
-                    # user is agency or is public and response is not private
-                    if (((current_user.is_public and response_.privacy != PRIVATE)
-                         or current_user.is_agency)
-                            # user is associated with request
-                            and UserRequests.query.filter_by(
-                                request_id=response_.request_id,
-                                user_guid=current_user.guid
-                            ).first() is not None or current_user.is_agency_read_only(request.agency_ein)):
+                return resp
+            return fu.send_file(*filepath_parts, as_attachment=True)
+        else:
+            # check presence of token in url
+            if token is not None:
+                resptok = ResponseTokens.query.filter_by(
+                    token=token, response_id=response_id).first()
+                if resptok is not None:
+                    if response_.privacy != PRIVATE:
                         @after_this_request
                         def remove(resp):
-                            os.remove(serving_path)
+                            if current_app.config['USE_VOLUME_STORAGE']:
+                                os.remove(serving_path)
                             return resp
 
                         return fu.send_file(*filepath_parts, as_attachment=True)
-                    # user does not have permission to view file
-                    return abort(403)
-                else:
-                    # redirect to login
-                    return redirect(login_url(
-                        login_manager.login_view,
-                        next_url=url_for('request.view', request_id=response_.request_id)
-                    ))
+                    else:
+                        delete_object(resptok)
+
+            # if token not included, nonexistent, or is expired, but user is logged in
+            if current_user.is_authenticated:
+                # user is agency or is public and response is not private
+                if (((current_user.is_public and response_.privacy != PRIVATE)
+                     or current_user.is_agency)
+                        # user is associated with request
+                        and UserRequests.query.filter_by(
+                            request_id=response_.request_id,
+                            user_guid=current_user.guid
+                        ).first() is not None):
+                    @after_this_request
+                    def remove(resp):
+                        if current_app.config['USE_VOLUME_STORAGE']:
+                            os.remove(serving_path)
+                        return resp
+
+                    return fu.send_file(*filepath_parts, as_attachment=True)
+                # user does not have permission to view file
+                return abort(403)
+            else:
+                # redirect to login
+                return redirect(login_url(
+                    login_manager.login_view,
+                    next_url=url_for('request.view', request_id=response_.request_id)
+                ))
     return abort(404)  # file does not exist
 
 
@@ -827,8 +836,7 @@ def response_get_envelope(request_id, response_id):
             io.BytesIO(f),
             mimetype='application/pdf',
             as_attachment=True,
-            attachment_filename=
-            '{request_id}_envelope.pdf'.format(request_id=request_id)
+            download_name='{request_id}_envelope.pdf'.format(request_id=request_id)
         )
 
 
