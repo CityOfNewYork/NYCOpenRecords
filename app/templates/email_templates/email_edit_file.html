@@ -4,20 +4,20 @@
         {% if response_data.data_old['privacy'] != response_privacy.PRIVATE %}
             <p>
                 <span class="mceNonEditable">
-                    A file in request <a href="{{ page }}">{{ request_id }}</a> has been edited.
+                    A record in request <a href="{{ page }}">{{ request_id }}</a> has been edited.
                 </span>
             </p>
         {% else %}
             <p>
                 <span class="mceNonEditable">
-                    A file in request <a href="{{ page }}">{{ request_id }}</a> is available for you to view.
+                    A record in request <a href="{{ page }}">{{ request_id }}</a> is available for you to view.
                 </span>
             </p>
             <div class="file-links">
             {% if response_data.response.request.requester.is_anonymous_requester %}
                 <p>
                     <span class="mceNonEditable">
-                        Link to file: <a href="{{ response_data.file_link_for_user['requester'] }}">
+                        Link to record: <a href="{{ response_data.file_link_for_user['requester'] }}">
                         {% if response_data.data_new['name'] %}
                             {{ response_data.data_new['name'] }}
                         {% else %}
@@ -37,7 +37,7 @@
                 {% if response_data.data_old['name'] %}
                     <p>
                         <span class="mceNonEditable">
-                            The <strong>file</strong>:
+                            The <strong>record</strong>:
                         </span>
                     </p>
                     <p style="padding-left: 30px;">
@@ -62,7 +62,7 @@
                 {% if response_data.data_old['name'] %}
                     <p>
                         <span class="mceNonEditable">
-                            The file's <strong>name</strong> was changed from:
+                            The record's <strong>name</strong> was changed from:
                         </span>
                     </p>
                     <p style="padding-left: 30px;">
@@ -121,7 +121,7 @@
             {% if not agency and response_data.response.request.requester.is_anonymous_requester %}
                  <p>
                     <span class="mceNonEditable">
-                         Link to file: <a href="{{ response_data.file_link_for_user['requester'] }}">
+                         Link to record: <a href="{{ response_data.file_link_for_user['requester'] }}">
                          {% if response_data.data_new['name'] %}
                              {{ response_data.data_new['name'] }}
                          {% else %}
@@ -135,7 +135,7 @@
             {% if agency or not response_data.response.request.requester.is_anonymous_requester %}
                 <p>
                     <span class="mceNonEditable">
-                        Link to file: <a href="{{ response_data.file_link_for_user['agency'] }}">
+                        Link to record: <a href="{{ response_data.file_link_for_user['agency'] }}">
                         {% if response_data.data_new['name'] %}
                             {{ response_data.data_new['name'] }}
                         {% else %}
