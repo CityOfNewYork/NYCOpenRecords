@@ -1209,7 +1209,7 @@
         },
         "monitor_agency_requests": [],
         "specific_request_instructions": {
-          "text": ""
+          "text": "<p>For information or assistance with services for older adults, including caregiver services, please call <strong>Aging Connect</strong>, NYC Department for the Aging’s information and referral contact center, at <strong>212-244-6469</strong>. You may also submit an inquiry online at: <a target='_blank' rel='noopener noreferrer' href='https://www.nyc.gov/site/dfta/about/contact-aging-connect.page' >https://www.nyc.gov/site/dfta/about/contact-aging-connect.page</a>.</p><br><p>Requests for employment verification of current and/or former NYC Department for the Aging employees should be directed to the NYC Department for the Aging’s Office of Human Resources at: <a href='mailto:benefitsleave@aging.nyc.gov'>benefitsleave@aging.nyc.gov</a>.</p><br><p>Requests related to police reports, arrest records, criminal complaints, or other criminal records should be directed to the <strong>New York City Police Department (NYPD)</strong> by selecting “NYPD” in the Agency drop-down menu above.</p>"
         }
       },
       "acronym": "DFTA"
