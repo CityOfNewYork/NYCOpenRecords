@@ -1303,11 +1303,11 @@ class Responses(db.Model):
 
     # TODO: overwrite filter to automatically check if deleted=False
 
-    def __init__(self, request_id, privacy, date_modified=None, is_editable=False, is_dataset=False, dataset_description=None):
+    def __init__(self, request_id, privacy, date_modified=None, release_date=None, is_editable=False, is_dataset=False, dataset_description=None):
         self.request_id = request_id
         self.privacy = privacy
         self.date_modified = date_modified or datetime.utcnow()
-        self.release_date = (
+        self.release_date = release_date or (
             calendar.addbusdays(datetime.utcnow(), RELEASE_PUBLIC_DAYS)
             if privacy == response_privacy.RELEASE_AND_PUBLIC
             else None
@@ -1955,10 +1955,11 @@ class Determinations(Responses):
         reason,
         date=None,
         date_modified=None,
+        release_date=None,
         is_editable=False,
     ):
         super(Determinations, self).__init__(
-            request_id, privacy, date_modified, is_editable
+            request_id, privacy, date_modified, release_date, is_editable
         )
         self.dtype = dtype
 

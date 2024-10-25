@@ -65,12 +65,16 @@ def update_agency_active_status(agency_ein, is_active):
             )
             # remove requests from index
             for request in agency.requests:
-                request.es_delete()
+                try:
+                    request.es_delete()
+                except Exception as e:
+                    # exception for document not found
+                    print(e)
             # deactivate agency users
             for user in agency.active_users:
                 update_object(
-                    {"is_agency_active": "False",
-                     "is_agency_admin": "False"},
+                    {"is_agency_active": False,
+                     "is_agency_admin": False},
                     AgencyUsers,
                     (user.guid, agency_ein)
                 )
