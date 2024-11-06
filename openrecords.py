@@ -58,7 +58,7 @@ from flask_migrate import Migrate, upgrade
 from werkzeug.contrib.profiler import ProfilerMiddleware
 
 from app import create_app, db
-from app.constants import OPENRECORDS_DL_EMAIL
+from app.constants import OPENRECORDS_DL_EMAIL, request_status
 from app.jobs import _update_request_statuses
 from app.lib.date_utils import process_due_date, local_to_utc
 from app.lib.email_utils import send_email
@@ -82,7 +82,7 @@ from app.models import (
 )
 from app.report.utils import generate_request_closing_user_report, generate_monthly_metrics_report
 from app.request.utils import generate_guid
-from app.response.utils import add_extension
+from app.response.utils import add_extension, add_closing_cli
 from app.search.utils import recreate
 from app.user.utils import make_user_admin
 
@@ -273,6 +273,35 @@ def extend_requests(agency_ein: str, agency_name: str, user_guid: str, extension
             print(request.id, 'extended')
         except:
             print(request.id, 'failed')
+
+
+@app.cli.command()
+@click.option("--agency_ein", prompt="Agency EIN (e.g. 0056)")
+@click.option("--user_guid", prompt="User GUID")
+@click.option("--reason_text", prompt="Reason text")
+def close_requests(agency_ein: str, user_guid: str, reason_text: str):
+    # Create request context
+    ctx = app.test_request_context()
+    ctx.push()
+    app.preprocess_request()
+
+    # Select user to perform the extensions
+    user = Users.query.filter_by(guid=user_guid).first()
+    login_user(user)
+
+    # Close open requests
+    open_requests = Requests.query.filter(Requests.agency_ein==agency_ein, Requests.status!=request_status.CLOSED).order_by(Requests.id).all()
+    for request in open_requests:
+        try:
+            # Close request
+            add_closing_cli(
+                request.id,
+                reason_text,
+            )
+            print(request.id, 'closed')
+        except Exception as e:
+            print(request.id, 'failed')
+            print(e)
 
 
 @app.cli.command()
