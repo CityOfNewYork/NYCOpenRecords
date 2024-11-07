@@ -286,7 +286,7 @@ def view(request_id):
     """
     try:
         current_request = Requests.query.filter_by(id=request_id).one()
-        assert current_request.agency.is_active
+        assert current_request.agency.is_active or current_request.status is request_status.CLOSED
     except NoResultFound:
         print("Request with id '{}' does not exist.".format(request_id))
         sentry.captureException()

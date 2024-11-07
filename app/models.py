@@ -1589,9 +1589,9 @@ class Notes(Responses):
     content = db.Column(db.String)
 
     def __init__(
-        self, request_id, privacy, content, date_modified=None, is_editable=False
+        self, request_id, privacy, content, date_modified=None, release_date=None, is_editable=False
     ):
-        super(Notes, self).__init__(request_id, privacy, date_modified, is_editable)
+        super(Notes, self).__init__(request_id, privacy, date_modified, release_date, is_editable)
         self.content = content
 
     @property
@@ -1630,6 +1630,7 @@ class Files(Responses):
         size,
         hash_,
         date_modified=None,
+        release_date=None,
         is_editable=False,
         is_dataset=False,
         dataset_description=None
@@ -1646,7 +1647,7 @@ class Files(Responses):
             sentry.captureException()
             raise DuplicateFileException(file_name=name, request_id=request_id)
 
-        super(Files, self).__init__(request_id, privacy, date_modified, is_editable, is_dataset, dataset_description)
+        super(Files, self).__init__(request_id, privacy, date_modified, release_date, is_editable, is_dataset, dataset_description)
         self.name = name
         self.mime_type = mime_type
         self.title = title
@@ -1674,9 +1675,9 @@ class Links(Responses):
     url = db.Column(db.String)
 
     def __init__(
-        self, request_id, privacy, title, url, date_modified=None, is_editable=False, is_dataset=False, dataset_description=None
+        self, request_id, privacy, title, url, date_modified=None, release_date=None, is_editable=False, is_dataset=False, dataset_description=None
     ):
-        super(Links, self).__init__(request_id, privacy, date_modified, is_editable, is_dataset, dataset_description)
+        super(Links, self).__init__(request_id, privacy, date_modified, release_date, is_editable, is_dataset, dataset_description)
         self.title = title
         self.url = url
 
@@ -1699,10 +1700,10 @@ class Instructions(Responses):
     content = db.Column(db.String)
 
     def __init__(
-        self, request_id, privacy, content, date_modified=None, is_editable=False
+        self, request_id, privacy, content, date_modified=None, release_date=None, is_editable=False
     ):
         super(Instructions, self).__init__(
-            request_id, privacy, date_modified, is_editable
+            request_id, privacy, date_modified, release_date, is_editable
         )
         self.content = content
 
@@ -1742,9 +1743,10 @@ class Emails(Responses):
         subject,
         body,
         date_modified=None,
+        release_date=None,
         is_editable=False,
     ):
-        super(Emails, self).__init__(request_id, privacy, date_modified, is_editable)
+        super(Emails, self).__init__(request_id, privacy, date_modified, release_date, is_editable)
         self.to = to
         self.cc = cc
         self.bcc = bcc
@@ -1774,9 +1776,9 @@ class Envelopes(Responses):
     latex = db.Column(db.String)
 
     def __init__(
-        self, request_id, privacy, latex, date_modified=None, is_editable=False
+        self, request_id, privacy, latex, date_modified=None, release_date=None, is_editable=False
     ):
-        super(Envelopes, self).__init__(request_id, privacy, date_modified, is_editable)
+        super(Envelopes, self).__init__(request_id, privacy, date_modified, release_date, is_editable)
         self.latex = latex
 
     @property
@@ -1841,9 +1843,9 @@ class Letters(Responses):
     content = db.Column(db.String)
 
     def __init__(
-        self, request_id, privacy, title, content, date_modified=None, is_editable=False
+        self, request_id, privacy, title, content, date_modified=None, release_date=None, is_editable=False
     ):
-        super(Letters, self).__init__(request_id, privacy, date_modified, is_editable)
+        super(Letters, self).__init__(request_id, privacy, date_modified, release_date, is_editable)
         self.title = title
         self.content = content
 
