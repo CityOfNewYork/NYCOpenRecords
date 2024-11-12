@@ -2,14 +2,14 @@
     <p>Expected date of completion: <strong>{{ moment(response.date).format('dddd, MM/DD/YYYY [at] h:mm A')}}</strong></p>
     {% if response.reason is not none %}
         <div class="request-description-text">
-            {{ response.content | safe }}
+            {{ response.reason | safe }}
         </div>
     {% endif %}
 {% elif response.dtype == determination_type.EXTENSION %}
     <p>Due date changed to: <strong>{{ moment(response.date).format('dddd, MM/DD/YYYY [at] h:mm A') }}</strong></p>
     {% if response.reason is not none %}
         <div class="request-description-text">
-            {{ response.content | safe }}
+            {{ response.reason | safe }}
         </div>
     {% endif %}
 {% elif response.dtype in (determination_type.DENIAL, determination_type.CLOSING) %}
