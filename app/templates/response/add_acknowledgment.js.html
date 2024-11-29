@@ -219,7 +219,8 @@
                             acknowledgment: JSON.stringify({
                                 days: email_days.val(),
                                 date: email_date.val(),
-                                info: tinyMCE.get('acknowledgment-email-info-text').getContent()
+                                info: tinyMCE.get('acknowledgment-email-info-text').getContent(),
+                                point_of_contact: point_of_contact.val()
                             }),
                             tz_name: jstz.determine().name()
                         },

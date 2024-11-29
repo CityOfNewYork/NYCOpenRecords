@@ -1155,6 +1155,9 @@ def _acknowledgment_email_handler(request_id, data, page, agency_name, email_tem
     else:
         description_hidden_by_default = False
 
+    # Determine if point of contact should be used
+    use_point_of_contact = request.agency.agency_features.get('use_point_of_contact', False)
+
     if acknowledgment is not None:
         acknowledgment = json.loads(acknowledgment)
         default_content = True
@@ -1165,11 +1168,13 @@ def _acknowledgment_email_handler(request_id, data, page, agency_name, email_tem
             acknowledgment['date'],
             data['tz_name'])
         info = acknowledgment['info'].strip() or None
+        point_of_contact = assign_point_of_contact(acknowledgment.get('point_of_contact', None))
     else:
         default_content = False
         content = data['email_content']
         date = None
         info = None
+        point_of_contact = None
     return jsonify({"template": render_template(email_template,
                                                 custom_request_forms_enabled=custom_request_forms_enabled,
                                                 default_content=default_content,
@@ -1180,7 +1185,9 @@ def _acknowledgment_email_handler(request_id, data, page, agency_name, email_tem
                                                 agency_name=agency_name,
                                                 date=date,
                                                 info=info,
-                                                page=page),
+                                                page=page,
+                                                use_point_of_contact=use_point_of_contact,
+                                                point_of_contact=point_of_contact),
                     "header": header}), 200
 
 

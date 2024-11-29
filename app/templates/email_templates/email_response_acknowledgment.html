@@ -14,6 +14,10 @@
             {{ info | safe }}
             <br/><br/>
         {% endif %}
+        {% if use_point_of_contact %}
+            <p>Your request has been assigned to {{ point_of_contact.title }} {{ point_of_contact.last_name }}
+                ({{ point_of_contact.formatted_point_of_contact_number }}) of this office.</p>
+        {% endif %}
         Please visit <a href="{{ page }}">{{ request_id }}</a> to view additional information and take any necessary action.
     </div>
 {% else %}
