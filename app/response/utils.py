@@ -1224,10 +1224,7 @@ def _acknowledgment_letter_handler(request_id, data):
 
         letterhead = render_template_string(agency_letter_data['letterhead'])
 
-        print("In letter handler")
-        print(acknowledgment)
         point_of_contact_user = assign_point_of_contact(acknowledgment.get('point_of_contact', None))
-        print(point_of_contact_user)
 
         template = render_template_string(contents.content,
                                           days=acknowledgment['days'],
