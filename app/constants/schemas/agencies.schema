@@ -16,6 +16,12 @@
           "description": "An array of agency EINs. Each EIN must be unique. Used to notify a \"parent\" agency of requests submitted to the \"child\"",
           "uniqueItems": true
         },
+        "use_point_of_contact": {
+          "$id": "/properties/agencies/items/properties/agency_features/properties/use_point_of_contact",
+          "type": "boolean",
+          "title": "Use Point of Contact",
+          "description": "Boolean value that determines if point of contact information should be used in email templates.",
+        },
         "letters": {
           "generate_letters": {
             "$id": "/properties/agencies/items/properties/agency_features/properties/letters/properties/generate_letters",
