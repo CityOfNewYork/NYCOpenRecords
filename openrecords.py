@@ -279,7 +279,8 @@ def extend_requests(agency_ein: str, agency_name: str, user_guid: str, extension
 @click.option("--agency_ein", prompt="Agency EIN (e.g. 0056)")
 @click.option("--user_guid", prompt="User GUID")
 @click.option("--reason_text", prompt="Reason text")
-def close_requests(agency_ein: str, user_guid: str, reason_text: str):
+@click.option("--requests_to_close_file", prompt="Requests to close file", default="")
+def close_requests(agency_ein: str, user_guid: str, reason_text: str, requests_to_close_file: str):
     # Create request context
     ctx = app.test_request_context()
     ctx.push()
@@ -290,7 +291,13 @@ def close_requests(agency_ein: str, user_guid: str, reason_text: str):
     login_user(user)
 
     # Close open requests
-    open_requests = Requests.query.filter(Requests.agency_ein==agency_ein, Requests.status!=request_status.CLOSED).order_by(Requests.id).all()
+    if requests_to_close_file:
+        file = open(requests_to_close_file)
+        data = file.read()
+        data_to_list = data.split("\n")
+        open_requests = Requests.query.filter(Requests.agency_ein==agency_ein, Requests.status!=request_status.CLOSED, Requests.id.in_(data_to_list)).order_by(Requests.id).all()
+    else:
+        open_requests = Requests.query.filter(Requests.agency_ein==agency_ein, Requests.status!=request_status.CLOSED).order_by(Requests.id).all()
     for request in open_requests:
         try:
             # Close request
