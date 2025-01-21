@@ -990,6 +990,7 @@ class Requests(db.Model):
                                 user.get_id() for user in self.agency_users
                             ],
                             "title_private": self.privacy["title"],
+                            "agency_ein": self.agency_ein,
                             "agency_request_summary_private": not self.agency_request_summary_released,
                             "date_due": self.due_date.strftime(ES_DATETIME_FORMAT),
                             "date_closed": self.date_closed.strftime(ES_DATETIME_FORMAT)

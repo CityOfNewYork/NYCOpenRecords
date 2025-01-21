@@ -279,8 +279,9 @@ def extend_requests(agency_ein: str, agency_name: str, user_guid: str, extension
 @click.option("--agency_ein", prompt="Agency EIN (e.g. 0056)")
 @click.option("--user_guid", prompt="User GUID")
 @click.option("--reason_text", prompt="Reason text")
+@click.option("--date_closed", prompt="Date closed", default="")
 @click.option("--requests_to_close_file", prompt="Requests to close file", default="")
-def close_requests(agency_ein: str, user_guid: str, reason_text: str, requests_to_close_file: str):
+def close_requests(agency_ein: str, user_guid: str, reason_text: str, date_closed: str, requests_to_close_file: str):
     # Create request context
     ctx = app.test_request_context()
     ctx.push()
@@ -304,6 +305,7 @@ def close_requests(agency_ein: str, user_guid: str, reason_text: str, requests_t
             add_closing_cli(
                 request.id,
                 reason_text,
+                date_closed
             )
             print(request.id, 'closed')
         except Exception as e:

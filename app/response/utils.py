@@ -450,23 +450,27 @@ def add_closing(request_id, reason_ids, content, method, letter_template_id):
                                    request_id=request_id,
                                    reason="Request is already closed or has not been acknowledged")
 
-def add_closing_cli(request_id, reason_text):
+def add_closing_cli(request_id, reason_text, date_closed):
     """
     Create and store a closing-determination response for the specified request and update the request accordingly.
     Meant to be used with the CLI command close_requests
 
     :param request_id: FOIL request ID
     :param reason_text: reason text for closing
+    :param date_closed: date the request is closed
     """
     request = Requests.query.filter_by(id=request_id).one()
     if request.status != request_status.CLOSED:
         previous_status = request.status
         previous_date_closed = request.date_closed.isoformat() if request.date_closed else None
         update_vals = {'status': request_status.CLOSED}
-        if not calendar.isbusday(datetime.utcnow()) or datetime.utcnow().date() < request.date_submitted.date():
-            update_vals['date_closed'] = get_next_business_day()
+        if date_closed:
+            update_vals['date_closed'] = date_closed
         else:
-            update_vals['date_closed'] = datetime.utcnow()
+            if not calendar.isbusday(datetime.utcnow()) or datetime.utcnow().date() < request.date_submitted.date():
+                update_vals['date_closed'] = get_next_business_day()
+            else:
+                update_vals['date_closed'] = datetime.utcnow()
         if not request.privacy['agency_request_summary'] and request.agency_request_summary is not None:
             update_vals['agency_request_summary_release_date'] = calendar.addbusdays(datetime.utcnow(),
                                                                                      RELEASE_PUBLIC_DAYS)
@@ -507,7 +511,8 @@ def add_closing_cli(request_id, reason_text):
                 RELEASE_AND_PUBLIC,
                 determination_type.CLOSING,
                 reason_text,
-                release_date=datetime.utcnow()
+                date_modified=date_closed if date_closed else datetime.utcnow(),
+                release_date=date_closed if date_closed else datetime.utcnow()
             )
         create_object(response)
         create_response_event(event_type.REQ_CLOSED, response)
