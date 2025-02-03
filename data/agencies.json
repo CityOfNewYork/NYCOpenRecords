@@ -1168,9 +1168,9 @@
           "generate_letters": false
         },
         "custom_request_forms": {
-          "enabled": false,
+          "enabled": true,
           "categorized": false,
-          "expand_by_default": false,
+          "expand_by_default": true,
           "category_info_text": "",
           "category_warning_text": "",
           "multiple_request_types": false,
