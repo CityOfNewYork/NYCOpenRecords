@@ -1514,7 +1514,8 @@
             "name": "doc-form2-field5",
             "placeholder": "MM/DD/YYYY",
             "required": false,
-            "future_date_invalid": true
+            "future_date_invalid": true,
+            "help_text": "If unknown, please provide a date range below."
           }
         },
         {
@@ -1542,7 +1543,7 @@
     },
     {
       "agency_ein": "0072",
-      "form_name": "Person in Custody Report",
+      "form_name": "Person in Custody File",
       "form_description": "",
       "field_definitions": [
         {
@@ -1592,6 +1593,15 @@
             "required": false,
             "future_date_invalid": true
           }
+        },
+        {
+          "Additional Details": {
+            "type": "textarea",
+            "name": "doc-form3-field7",
+            "required": false,
+            "max_length": "5000",
+            "character_counter": true
+          }
         }
       ],
       "repeatable": "1",
@@ -1631,7 +1641,8 @@
             "type": "date",
             "name": "doc-form4-field4",
             "placeholder": "MM/DD/YYYY",
-            "required": false,
+            "required": true,
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Date of Birth is required.</strong> Please provide a date.",
             "future_date_invalid": true
           }
         },
