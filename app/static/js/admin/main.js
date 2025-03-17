@@ -42,11 +42,13 @@ $(function () {
         var row = $(this).parents(".row");
         var id = row.find("input[name='user-id']").val();
         var isSuperUser = $(this).is(":checked");
+        var agencyEin = $("input[name='agency-ein']").val();
         $.ajax({
             url: "/user/" + id,
             type: "PATCH",
             data: {
-                is_super: isSuperUser
+                is_super: isSuperUser,
+                agency_ein: agencyEin
             }
         });
     });

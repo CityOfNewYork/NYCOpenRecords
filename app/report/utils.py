@@ -223,10 +223,8 @@ def generate_request_closing_user_report(agency_ein: str, date_from: str, date_t
         func.to_char(Requests.due_date, 'MM/DD/YYYY'),
         func.to_char(Events.timestamp, 'MM/DD/YYYY HH:MI:SS.MS'),
         Users.fullname,
-    ).distinct().join(
-        Events,
-        Users,
-    ).filter(
+        Requests.description
+    ).distinct().join(Events, Events.request_id == Requests.id).join(Users, Users.guid == Events.user_guid).filter(
         Events.timestamp.between(date_from_utc, date_to_utc),
         Requests.agency_ein == agency_ein,
         Events.type.in_((REQ_CLOSED, REQ_DENIED)),
@@ -237,12 +235,14 @@ def generate_request_closing_user_report(agency_ein: str, date_from: str, date_t
     person_month_list = [list(r) for r in person_month]
     for person_month_item in person_month_list:
         person_month_item[4] = person_month_item[4].split(' ', 1)[0]
+        person_month_item[6] = Markup(person_month_item[6]).unescape()
     person_month_headers = ('Request ID',
                             'Status',
                             'Date Created',
                             'Due Date',
                             'Timestamp',
-                            'Closed By')
+                            'Closed By',
+                            'Request Description')
     person_month_dataset = tablib.Dataset(*person_month_list,
                                           headers=person_month_headers,
                                           title='month closed by person Raw Data')

@@ -5,15 +5,14 @@
     :synopsis: Defines the forms used to manage Authentication requests
 """
 
-from flask_wtf import Form
+from flask_wtf import FlaskForm
 from wtforms import StringField, SelectField, PasswordField, SubmitField
 from wtforms.validators import Length, Email, Optional, DataRequired
 
 from app.constants import STATES
-from app.models import Agencies
 
 
-class StripFieldsForm(Form):
+class StripFieldsForm(FlaskForm):
     """
     Any field data that can be stripped, will be stripped.
     http://stackoverflow.com/questions/26232165/automatically-strip-all-values-in-wtforms
@@ -174,7 +173,7 @@ class ManageAgencyUserAccountForm(StripFieldsForm):
         )
 
 
-class BasicLoginForm(Form):
+class BasicLoginForm(FlaskForm):
     email = StringField("Email")
     password = PasswordField("Password")
 

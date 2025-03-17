@@ -55,7 +55,7 @@ from flask import url_for, render_template, request as flask_request
 from flask.cli import main
 from flask_login import login_user
 from flask_migrate import Migrate, upgrade
-from werkzeug.contrib.profiler import ProfilerMiddleware
+from werkzeug.middleware.profiler import ProfilerMiddleware
 
 from app import create_app, db
 from app.constants import OPENRECORDS_DL_EMAIL, request_status

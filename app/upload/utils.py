@@ -128,11 +128,9 @@ class VirusDetectedException(Exception):
 
 
 @celery.task
-def scan_and_complete_upload(request_id, filepath, is_update=False, response_id=None):
+def scan_upload(request_id, filepath, is_update=False, response_id=None):
     """
-    Scans an uploaded file (see scan_file) and moves
-    it to the data directory if it is clean. If is_update is set,
-    the file will also be placed under the 'updated' directory.
+    Scans an uploaded file (see scan_file).
     Updates redis accordingly.
 
     :param request_id: id of request associated with the upload
@@ -156,18 +154,25 @@ def scan_and_complete_upload(request_id, filepath, is_update=False, response_id=
         sentry.captureException()
         redis.delete(key)
     else:
-        # complete upload
-        dst_dir = os.path.join(
-            current_app.config['UPLOAD_DIRECTORY'],
-            request_id
-        )
-        if is_update:
-            dst_dir = os.path.join(
-                dst_dir,
-                UPDATED_FILE_DIRNAME
-            )
         # store file metadata in redis
         redis_set_file_metadata(response_id or request_id, filepath, is_update)
+        redis.set(key, upload_status.READY)
+
+
+@celery.task
+def complete_upload(request_id, quarantine_path, filename):
+    """
+    Complete file upload to volume storage or Azure storage.
+
+    :param request_id: id of request associated with the upload
+    :param quarantine_path: path to quarantined file
+    :param filename: name of file being uploaded
+    """
+    dst_dir = os.path.join(
+        current_app.config['UPLOAD_DIRECTORY'],
+        request_id
+    )
+    if current_app.config['USE_VOLUME_STORAGE']:
         if not fu.exists(dst_dir):
             try:
                 fu.makedirs(dst_dir)
@@ -176,13 +181,12 @@ def scan_and_complete_upload(request_id, filepath, is_update=False, response_id=
                 # in the time between the call to fu.exists
                 # and fu.makedirs, the directory was created
                 current_app.logger.error("OS Error: {}".format(e.args))
-
         fu.move(
-            filepath,
+            quarantine_path,
             os.path.join(dst_dir, filename)
         )
-        redis.set(key, upload_status.READY)
-
+    elif current_app.config['USE_AZURE_STORAGE']:
+        fu.azure_upload(quarantine_path, os.path.join(dst_dir, filename))
 
 def scan_file(filepath):
     """

@@ -29,27 +29,16 @@
         }
     });
     {% if current_user.is_authenticated %}
-        $.sessionTimeout({
-            title: 'Your Session is About to Expire!',
-            message: 'Your session is about to expire.',
-            logoutButton: 'Logout',
-            keepAliveButton: 'Stay Connected',
-            keepAliveUrl: '/active',
-            ajaxType: 'POST',
-            ajaxData: '',
-            redirUrl: '/auth/logout?timeout=True&forced_logout=True',
-            logoutUrl: '/auth/logout',
+        sessionTimeout({
             warnAfter: 10 * 60 * 1000, // 10 minutes
-            redirAfter: 15 * 60 * 1000, // 15 minutes
-            keepAliveInterval: 1 * 60 * 1000, // 1 minute
-            keepAlive: true,
-            ignoreUserActivity: false,
-            onStart: false,
-            onWarn: false,
-            onRedir: false,
-            countdownMessage: 'You will be automatically logged out in {timer}.',
-            countdownBar: true,
-            countdownSmart: true
+            timeOutAfter: 15 * 60 * 1000, // 15 minutes
+            timeOutUrl: '/auth/logout?timeout=True',
+            logOutUrl: '/auth/logout',
+            keepAliveUrl: '/active',
+            titleText: 'Your Session is About to Expire!',
+            message: 'Your session is about to expire.',
+            stayConnectedBtnText: 'Stay Connected',
+            logoutBtnText: 'Logout',
         });
         {% if duplicate_session %}
             $("#concurrent-session-modal").modal("show");
@@ -59,5 +48,15 @@
         {% endif %}
     {% endif %}
 
+    // Toggle for google translate
+    $('#global-language').on('show.bs.collapse', function () {
+        $('#global-search').collapse('hide');
+        $('#nav-primary').collapse('hide');
+    });
 
+    $('#global-language').on('shown.bs.collapse', function () {
+        $('.goog-te-combo').focus();
+    }).on('show.bs.collapse', function () {
+        $('.goog-te-combo').blur();
+    });
 </script>

@@ -44,11 +44,11 @@
                 {{ acknowledgment_form.csrf_token }}
                 <div class="form-group">
                     {{ acknowledgment_form.date_from.label }}
-                    {{ acknowledgment_form.date_from }}
+                    {{ acknowledgment_form.date_from(type="text") }}
                 </div>
                 <div class="form-group">
                     {{ acknowledgment_form.date_to.label }}
-                    {{ acknowledgment_form.date_to(readonly=readonly) }}
+                    {{ acknowledgment_form.date_to(readonly=readonly, type="text") }}
                 </div>
                 {{ acknowledgment_form.submit_field(class="btn btn-success") }}
             </form>
@@ -84,11 +84,11 @@
                 {{ open_data_report_form.csrf_token }}
                 <div class="form-group">
                     {{ open_data_report_form.date_from.label }}
-                    {{ open_data_report_form.date_from }}
+                    {{ open_data_report_form.date_from(type="text") }}
                 </div>
                 <div class="form-group">
                     {{ open_data_report_form.date_to.label }}
-                    {{ open_data_report_form.date_to }}
+                    {{ open_data_report_form.date_to(type="text") }}
                 </div>
                 {{ open_data_report_form.submit_field(class="btn btn-success") }}
             </form>
