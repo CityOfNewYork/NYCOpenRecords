@@ -120,11 +120,15 @@ $(document).ready(function () {
     // Apply parsley validation styles to the input forms for a new request.
     $("#request-title").attr("data-parsley-required", "");
     $("#request-title").attr("data-parsley-maxlength", 90);
+    $("#request-category").attr("data-parsley-required", "");
     $("#request-agency").attr("data-parsley-required", "");
     $("#request-description").attr("data-parsley-required", "");
     $("#request-description").attr("data-parsley-maxlength", 5000);
 
     // Custom Validation Messages
+    $("#request-category").attr("data-parsley-required-message",
+        "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+        "<strong>Error, a category is required.</strong> Please select a category from the drop-down menu.");
     $("#request-agency").attr("data-parsley-required-message",
         "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
         "<strong>Error, an agency is required.</strong> Please select an agency from the drop-down menu.");

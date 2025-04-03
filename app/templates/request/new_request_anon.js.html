@@ -169,7 +169,7 @@
         // Apply parsley validation styles to the input forms for a new request.
 
         // Loop through required fields and apply a data-parsley-required attribute to them
-        var requiredFields = ["request-title", "request-description", "request-agency", "first-name",
+        var requiredFields = ["request-title", "request-description", "request-agency", "request-category", "first-name",
             "last-name", "email",
             "phone", "fax", "address-line-1", "city", "zipcode"
         ];
@@ -191,6 +191,10 @@
         $("#zipcode").attr("data-parsley-length", "[5,5]");
 
         // Custom Validation Messages
+        $("#request-category").attr("data-parsley-required-message",
+            "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+            "<strong>Error, a category is required.</strong> Please select a category from the drop-down menu."
+            );
         $("#request-agency").attr("data-parsley-required-message",
             "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
             "<strong>Error, an agency is required.</strong> Please select an agency from the drop-down menu."
@@ -321,7 +325,9 @@
             }
 
             // Scroll to input label if parsley validation fails
-            if ($("#request-agency").parsley().isValid() === false) {
+            if ($("#request-category").parsley().isValid() === false) {
+                $(window).scrollTop($(".category-label").offset().top);
+            } else if ($("#request-agency").parsley().isValid() === false) {
                 $(window).scrollTop($(".agency-label").offset().top);
             } else if ($("#request-title").parsley().isValid() === false) {
                 $(window).scrollTop($(".title-label").offset().top);

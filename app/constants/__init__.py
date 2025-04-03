@@ -3,7 +3,7 @@ from app.constants import response_type, determination_type, event_type
 ACKNOWLEDGMENT_PERIOD_LENGTH = 5
 
 CATEGORIES = [
-    ('', 'All'),
+    ('', ''),
     ('Business', 'Business'),
     ('Civic Services', 'Civic Services'),
     ('Culture & Recreation', 'Culture & Recreation'),

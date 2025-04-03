@@ -44,8 +44,8 @@ class PublicUserRequestForm(Form):
     """
 
     # Request Information
-    request_category = SelectField("Category (optional)", choices=CATEGORIES)
-    request_agency = SelectField("Agency (required)", choices=None)
+    request_category = SelectField("Category (required)", choices=CATEGORIES)
+    request_agency = SelectField("Agency (required)", choices=[])
     request_title = StringField("Request Title (required)")
     request_type = SelectField("Request Type (required)", choices=[])
     request_description = TextAreaField("Request Description (required)")
@@ -58,7 +58,6 @@ class PublicUserRequestForm(Form):
 
     def __init__(self):
         super(PublicUserRequestForm, self).__init__()
-        self.request_agency.choices = get_agency_choices()
         self.request_agency.choices.insert(0, ("", ""))
 
 
@@ -150,8 +149,8 @@ class AnonymousRequestForm(Form):
     """
 
     # Request Information
-    request_category = SelectField("Category (optional)", choices=CATEGORIES)
-    request_agency = SelectField("Agency (required)", choices=None)
+    request_category = SelectField("Category (required)", choices=CATEGORIES)
+    request_agency = SelectField("Agency (required)", choices=[])
     request_type = SelectField("Request Type (required)", choices=[])
     request_title = StringField("Request Title (required)")
     request_description = TextAreaField("Request Description (required)")
@@ -179,7 +178,6 @@ class AnonymousRequestForm(Form):
 
     def __init__(self):
         super(AnonymousRequestForm, self).__init__()
-        self.request_agency.choices = get_agency_choices()
         self.request_agency.choices.insert(0, ("", ""))
 
 
