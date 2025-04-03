@@ -509,10 +509,11 @@ def get_agencies_as_choices():
             ],
             key=lambda x: x[1],
         )
+        choices.insert(0, ("", ""))
     else:
         # Don't populate agency choices until a category is selected
         choices = []
-    choices.insert(0, ("", ""))  # Insert blank option at the beginning of choices to prevent auto selection
+        choices.insert(0, ("", "Please select a category first.")) # Insert blank option at the beginning of choices to prevent auto selection
     return jsonify(choices)
 
 

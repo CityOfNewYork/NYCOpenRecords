@@ -58,7 +58,7 @@ class PublicUserRequestForm(Form):
 
     def __init__(self):
         super(PublicUserRequestForm, self).__init__()
-        self.request_agency.choices.insert(0, ("", ""))
+        self.request_agency.choices.insert(0, ("", "Please select a category first."))
 
 
 class AgencyUserRequestForm(Form):
@@ -178,7 +178,7 @@ class AnonymousRequestForm(Form):
 
     def __init__(self):
         super(AnonymousRequestForm, self).__init__()
-        self.request_agency.choices.insert(0, ("", ""))
+        self.request_agency.choices.insert(0, ("", "Please select a category first."))
 
 
 class EditRequesterForm(Form):
