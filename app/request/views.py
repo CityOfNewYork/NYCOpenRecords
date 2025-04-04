@@ -81,6 +81,7 @@ def new():
     kiosk_mode = eval_request_bool(werkzeug_escape(flask_request.args.get("kiosk_mode", False)))
     category = str(werkzeug_escape(flask_request.args.get("category", None)))
     agency = str(werkzeug_escape(flask_request.args.get("agency", None)))
+    agency_name = str(werkzeug_escape(flask_request.args.get("agency_name", None)))
     title = str(werkzeug_escape(flask_request.args.get("title", None)))
 
     if current_user.is_public:
@@ -256,6 +257,7 @@ def new():
         kiosk_mode=kiosk_mode,
         category=category,
         agency=agency,
+        agency_name=agency_name,
         title=title,
     )
 

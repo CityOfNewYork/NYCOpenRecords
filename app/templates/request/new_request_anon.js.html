@@ -28,7 +28,8 @@
         {% if category %}
             $("#request-category option[value=\"{{ category }}\"]").attr('selected', 'selected');
         {% endif %}
-        {% if agency %}
+        {% if agency and agency_name %}
+            $("#request-agency").append(new Option("{{ agency_name }}", "{{ agency }}"));
             $("#request-agency option[value={{ agency }}]").attr('selected', 'selected');
         {% endif %}
         {% if title %}
@@ -365,6 +366,12 @@
 
         // Disable submit button on form submission
         $("#request-form").on("submit", function (e) {
+            {% if kiosk_mode %}
+                // Enable kiosk mode fields on submit
+                $("#request-category").prop('disabled', false);
+                $("#request-agency").prop('disabled', false);
+                $("#request-title").prop('disabled', false);
+            {% endif %}
             $(".remove-on-resubmit").remove();
             if ($("#request-form").parsley().isValid()) {
                 // section to check if at least one request type has been selected
