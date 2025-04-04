@@ -6,9 +6,11 @@
 from flask import (
     current_app,
     flash,
+    redirect,
     render_template,
     request,
-    session
+    session,
+    url_for,
 )
 from flask_login import current_user
 
@@ -24,16 +26,23 @@ import requests
 @main.route('/', methods=['GET', 'POST'])
 def index():
     fresh_login = request.args.get('fresh_login', False)
-    if current_user.is_authenticated and fresh_login:
-        if current_user.session_id is not None:
-            return render_template('main/home.html', duplicate_session=True)
-        update_object(
-            {
-                'session_id': session.sid_s
-            },
-            Users,
-            current_user.guid
-        )
+    verify_mfa = request.args.get('verify_mfa', False)
+    if current_user.is_authenticated:
+        if verify_mfa and current_app.config['USE_MFA']:
+            if current_user.has_mfa:
+                return redirect(url_for('mfa.verify'))
+            else:
+                return redirect(url_for('mfa.register'))
+        if fresh_login:
+            if current_user.session_id is not None:
+                return render_template('main/home.html', duplicate_session=True)
+            update_object(
+                {
+                    'session_id': session.sid
+                },
+                Users,
+                current_user.guid
+            )
     return render_template('main/home.html')
 
 

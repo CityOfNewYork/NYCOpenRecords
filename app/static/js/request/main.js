@@ -739,7 +739,7 @@ function processCustomRequestFormData() {
             var formKey = "form_";
             var fieldKey = "field_";
             var formId = $("#request-type-" + target + " option:selected").val();
-            var formName = originalFormNames[formId];
+            var formName = $("#request-type-" + target + " option:selected").text();
             var previousRadioId = "";
             var completedFields = 0;
 
@@ -772,17 +772,26 @@ function processCustomRequestFormData() {
 
                 if ($("#" + this.id).prop("multiple") === true) {
                     var selectMultipleId = "#" + this.id;
-                    customRequestFormData[formKey]["form_fields"][fieldKey]["field_value"] = $(selectMultipleId).val();
-                    if ($(selectMultipleId).val() !== null) {
+                    var selectMultipleValue = $(selectMultipleId).val();
+                    // set select multiple with no value to empty string so that field_value key is still created
+                    if (selectMultipleValue == null) {
+                        selectMultipleValue = "";
+                    }
+                    customRequestFormData[formKey]["form_fields"][fieldKey]["field_value"] = selectMultipleValue;
+                    if (selectMultipleValue !== "") {
                         completedFields++;
                     }
 
                 } else if ($("#" + this.id).is(":radio") === true) {
                     // since all radio inputs have the same id only take the value of the first one to avoid duplicates
                     var radioValue = $("input[name='" + this.id + "']:checked").val();
+                    // set radios with no value to empty string so that field_value key is still created
+                    if (radioValue == null) {
+                        radioValue = "";
+                    }
                     if (this.id !== previousRadioId) {
                         customRequestFormData[formKey]["form_fields"][fieldKey]["field_value"] = radioValue;
-                        if (radioValue != null) {
+                        if (radioValue !== "") {
                             completedFields++;
                         }
                     } else {

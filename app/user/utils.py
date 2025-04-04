@@ -222,6 +222,5 @@ def es_update_assigned_users(self, request_ids: list):
         es,
         actions,
         index=current_app.config['ELASTICSEARCH_INDEX'],
-        doc_type='request',
         chunk_size=current_app.config['ELASTICSEARCH_CHUNK_SIZE']
     )

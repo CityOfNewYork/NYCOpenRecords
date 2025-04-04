@@ -373,6 +373,7 @@ class Users(UserMixin, db.Model):
         lazy="dynamic",
     )
     agency_users = db.relationship("AgencyUsers", backref="user", lazy="dynamic")
+    mfa = db.relationship("MFA", backref="user", lazy="dynamic")
 
     @property
     def is_authenticated(self):
@@ -541,6 +542,8 @@ class Users(UserMixin, db.Model):
 
     def agencies_for_forms(self):
         agencies = self.agencies.with_entities(Agencies.ein, Agencies._name).all()
+        # Convert the results of with_entities back to tuple format so that agencies can be processed
+        agencies = [tuple(agency) for agency in agencies]
         agencies.insert(
             0,
             agencies.pop(
@@ -572,6 +575,18 @@ class Users(UserMixin, db.Model):
     def get_id(self):
         return self.guid
 
+    @property
+    def has_mfa(self):
+        """
+        Determine if a user has MFA set up.
+        :return: Boolean
+        """
+        mfa = MFA.query.filter_by(user_guid=self.guid,
+                                  is_valid=True).first()
+        if mfa is not None:
+            return True
+        return False
+
     def es_update(self):
         """
         Call es_update for any request where this user is the requester
@@ -592,7 +607,6 @@ class Users(UserMixin, db.Model):
                 es,
                 actions,
                 index=current_app.config["ELASTICSEARCH_INDEX"],
-                doc_type="request",
                 chunk_size=current_app.config["ELASTICSEARCH_CHUNK_SIZE"],
             )
 
@@ -979,7 +993,6 @@ class Requests(db.Model):
             if self.agency.is_active:
                 es.update(
                     index=current_app.config["ELASTICSEARCH_INDEX"],
-                    doc_type="request",
                     id=self.id,
                     body={
                         "doc": {
@@ -1006,6 +1019,8 @@ class Requests(db.Model):
                             "public_title": "Private"
                             if self.privacy["title"]
                             else self.title,
+                            "agency_name": self.agency.name,
+                            "agency_acronym": self.agency.acronym,
                             "request_type": [metadata["form_name"] for metadata in self.custom_metadata.values()]
                         }
                     },
@@ -1017,7 +1032,6 @@ class Requests(db.Model):
         if current_app.config["ELASTICSEARCH_ENABLED"]:
             es.create(
                 index=current_app.config["ELASTICSEARCH_INDEX"],
-                doc_type="request",
                 id=self.id,
                 body={
                     "title": self.title,
@@ -1053,7 +1067,6 @@ class Requests(db.Model):
         if current_app.config["ELASTICSEARCH_ENABLED"]:
             es.delete(
                 index=current_app.config["ELASTICSEARCH_INDEX"],
-                doc_type="request",
                 id=self.id,
             )
 
@@ -2092,3 +2105,26 @@ class CustomRequestForms(db.Model):
                 )
                 db.session.add(custom_request_form)
             db.session.commit()
+
+
+class MFA(db.Model):
+    __tablename__ = "mfa"
+    id = db.Column(db.Integer, primary_key=True)
+    user_guid = db.Column(db.String(64), db.ForeignKey("users.guid"))
+    secret = db.Column(db.LargeBinary(), nullable=False)
+    device_name = db.Column(db.String(32), nullable=False)
+    is_valid = db.Column(db.Boolean(), nullable=False, default=False)
+
+    __table_args__ = (
+        db.ForeignKeyConstraint([user_guid], [Users.guid], onupdate="CASCADE"),
+    )
+
+    def __init__(self,
+                 user_guid,
+                 secret,
+                 device_name,
+                 is_valid):
+        self.user_guid = user_guid
+        self.secret = secret
+        self.device_name = device_name
+        self.is_valid = is_valid

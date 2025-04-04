@@ -43,7 +43,7 @@
 }
 
 @media (max-width: 767px) {
-    #google_translate_element {
+    .translate-btn {
         display: none;
     }
 
@@ -96,39 +96,6 @@
 footer .form-search .input-search {
     height: 32px;
     font-size: 16px;
-}
-
-#google_translate_element {
-    padding-top: 4rem;
-    padding-left: 4rem;
-}
-
-.goog-te-gadget-icon {
-    display: none;
-}
-
-.goog-te-menu-value {
-    display: none;
-}
-
-.goog-te-menu-value2 {
-    text-decoration: none;
-    color: #0000cc;
-    white-space: nowrap;
-    margin-left: 4px;
-    margin-right: 4px;
-    border: none;
-}
-
-.goog-te-gadget-simple {
-    background-color: #fff;
-    border: none;
-    font-size: 10pt;
-    display: inline-block;
-    padding-top: 1px;
-    padding-bottom: 2px;
-    cursor: pointer;
-    zoom: 1;
 }
 
 .row {
@@ -227,4 +194,57 @@ input[type="radio"], input[type="checkbox"] {
 .parsley-errors-list.filled {
     font-size: 14px;
     color: #df0000;
+}
+
+.translate-btn {
+    color: currentColor;
+    font-weight: inherit;
+    border-color: transparent;
+    background-color: transparent;
+    padding-top: 4rem;
+    padding-left: 4rem;
+    cursor: pointer;
+}
+
+#global-language {
+  width: 100%;
+  padding-right: 1rem;
+  padding-left: 1rem;
+  margin-right: auto;
+  margin-left: auto;
+  border-top: 1px solid #dee2e6 !important;
+  border-bottom: 1px solid #dee2e6 !important;
+}
+
+.py-2 {
+  padding-top: 2rem !important;
+  padding-bottom: 2rem !important;
+}
+
+.narrow {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#google_translate_element {
+  text-align: center;
+}
+
+#google_translate_element .goog-logo-link {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#google_translate_element select {
+  width: 25%;
+  height: 5rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  padding-left: 1rem;
+  font-size: 2rem;
+}
+
+html[dir="rtl"] select:not(.notranslate):not(.goog-te-combo) {
+  background-position-x: 0.75rem !important;
+  padding: 0.375rem 0.75rem 0.375rem 1.75rem;
 }

@@ -186,6 +186,11 @@ def create_request(title,
         ))
 
     if upload_path is not None:
+        # Store file metadata
+        file_mimetype = fu.get_mime_type(upload_path)
+        file_size = fu.getsize(upload_path)
+        file_hash = fu.get_hash(upload_path)
+
         # 7. Move file to upload directory
         upload_path = _move_validated_upload(request_id, upload_path)
         # 8. Create response object
@@ -194,9 +199,9 @@ def create_request(title,
                          RELEASE_AND_PRIVATE,
                          filename,
                          filename,
-                         fu.get_mime_type(upload_path),
-                         fu.getsize(upload_path),
-                         fu.get_hash(upload_path),
+                         file_mimetype,
+                         file_size,
+                         file_hash,
                          is_editable=False)
         create_object(obj=response)
 
@@ -371,7 +376,14 @@ def _move_validated_upload(request_id, tmp_path):
     valid_path = os.path.join(dst_dir, valid_name)
     # store file metadata in redis
     redis_set_file_metadata(request_id, tmp_path)
-    fu.move(tmp_path, valid_path)
+
+    # Move file to data directory if volume storage is enabled
+    if current_app.config['USE_VOLUME_STORAGE']:
+        fu.move(tmp_path, valid_path)
+    # Upload file to Azure if Azure storage is enabled
+    elif current_app.config['USE_AZURE_STORAGE']:
+        fu.azure_upload(tmp_path, valid_path)
+
     upload_redis.set(
         get_upload_key(request_id, valid_name),
         upload_status.READY)

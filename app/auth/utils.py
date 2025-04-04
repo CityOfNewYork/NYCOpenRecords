@@ -407,7 +407,7 @@ def saml_sls(saml_sp, user_guid):
         Response Object: Redirect the user to the Home Page.
 
     """
-    dscb = session.destroy()
+    dscb = session.clear()
     url = saml_sp.process_slo(delete_session_cb=dscb)
     errors = saml_sp.get_errors()
     logout_user()
@@ -420,7 +420,9 @@ def saml_sls(saml_sp, user_guid):
                 'type': current_app.config['AUTH_TYPE']
             }
         )
-        return redirect(url) if url else redirect(url_for('main.index'))
+        redir = redirect(url) if url else redirect(url_for('main.index'))
+        redir.headers['Clear-Site-Data'] = '"*"'
+        return redir
     else:
         error_message = "Errors on SAML Logout:\n{errors}".format(errors='\n'.join(errors))
         current_app.logger.exception(error_message)
@@ -433,8 +435,10 @@ def saml_sls(saml_sp, user_guid):
                 'errors': error_message
             }
         )
+        redir = redirect(url_for('main.index'))
+        redir.headers['Clear-Site-Data'] = '"*"'
         flash("Sorry! An unexpected error has occurred. Please try again later.", category='danger')
-        return redirect(url_for('main.index'))
+        return redir
 
 
 def saml_slo(saml_sp):
@@ -522,9 +526,9 @@ def saml_acs(saml_sp, onelogin_request):
         self_url = OneLogin_Saml2_Utils.get_self_url(onelogin_request)
 
         if 'RelayState' in request.form and self_url != request.form['RelayState']:
-            return redirect(saml_sp.redirect_to(request.form['RelayState'], {'fresh_login': 'true'}))
+            return redirect(saml_sp.redirect_to(request.form['RelayState'], {'verify_mfa': 'true'}))
 
-        return redirect(url_for('main.index', fresh_login=True))
+        return redirect(url_for('main.index', verify_mfa=True))
 
     error_message = "Errors on SAML ACS:\n{errors}\n\nUser Data: {user_data}".format(errors='\n'.join(errors),
                                                                                      user_data=user_data)

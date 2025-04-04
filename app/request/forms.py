@@ -7,7 +7,7 @@
 from datetime import datetime
 
 from flask_login import current_user
-from flask_wtf import Form
+from flask_wtf import FlaskForm
 from flask_wtf.file import FileField
 from wtforms import (
     StringField,
@@ -31,7 +31,7 @@ from app.lib.db_utils import get_agency_choices
 from app.models import Reasons, LetterTemplates, EnvelopeTemplates, CustomRequestForms
 
 
-class PublicUserRequestForm(Form):
+class PublicUserRequestForm(FlaskForm):
     """
     Form for public users to create a new FOIL request.
     For a public user, the required fields are:
@@ -62,7 +62,7 @@ class PublicUserRequestForm(Form):
         self.request_agency.choices.insert(0, ("", ""))
 
 
-class AgencyUserRequestForm(Form):
+class AgencyUserRequestForm(FlaskForm):
     """
     Form for agency users to create a new FOIL request.
     For an agency user, the required fields are:
@@ -128,7 +128,7 @@ class AgencyUserRequestForm(Form):
             self.request_agency.choices = current_user.agencies_for_forms()
 
 
-class AnonymousRequestForm(Form):
+class AnonymousRequestForm(FlaskForm):
     """
     Form for anonymous users to create a new FOIL request.
     For a anonymous user, the required fields are:
@@ -183,7 +183,7 @@ class AnonymousRequestForm(Form):
         self.request_agency.choices.insert(0, ("", ""))
 
 
-class EditRequesterForm(Form):
+class EditRequesterForm(FlaskForm):
     # TODO: Add class docstring
     email = StringField("Email")
     phone = StringField("Phone Number")
@@ -214,7 +214,7 @@ class EditRequesterForm(Form):
             self.zipcode.data = requester.mailing_address.get("zip") or ""
 
 
-class DeterminationForm(Form):
+class DeterminationForm(FlaskForm):
     # TODO: Add class docstring
     def __init__(self, agency_ein):
         super(DeterminationForm, self).__init__()
@@ -303,7 +303,7 @@ class ReopenRequestForm(DeterminationForm):
     ultimate_determination_type = [determination_type.REOPENING]
 
 
-class GenerateEnvelopeForm(Form):
+class GenerateEnvelopeForm(FlaskForm):
     # TODO: Add class docstring
     template = SelectField("Template")
     recipient_name = StringField("Recipient Name")
@@ -335,7 +335,7 @@ class GenerateEnvelopeForm(Form):
             self.zipcode.data = requester.mailing_address.get("zip") or ""
 
 
-class GenerateLetterForm(Form):
+class GenerateLetterForm(FlaskForm):
     # TODO: Add class docstring
     def __init__(self, agency_ein):
         super(GenerateLetterForm, self).__init__()
@@ -433,7 +433,7 @@ class GenerateResponseLetterForm(GenerateLetterForm):
     letter_type = [response_type.LETTER]
 
 
-class SearchRequestsForm(Form):
+class SearchRequestsForm(FlaskForm):
     # TODO: Add class docstring
     agency_ein = SelectField("Agency")
     agency_user = SelectField("User")
@@ -508,7 +508,7 @@ class SearchRequestsForm(Form):
             self.process()
 
 
-class ContactAgencyForm(Form):
+class ContactAgencyForm(FlaskForm):
     # TODO: Add class docstring
     first_name = StringField(
         u"First Name", validators=[InputRequired(), Length(max=32)]

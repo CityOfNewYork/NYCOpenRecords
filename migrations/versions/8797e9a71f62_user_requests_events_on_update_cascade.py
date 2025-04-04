@@ -26,7 +26,7 @@ def upgrade():
         onupdate="CASCADE",
     )
     op.drop_constraint(
-        "user_requests_user_guid_fkey", "user_requests", type_="foreignkey"
+       "user_requests_user_guid_fkey", "user_requests", type_="foreignkey"
     )
     op.create_foreign_key(
         None,

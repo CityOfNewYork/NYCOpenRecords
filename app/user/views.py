@@ -316,8 +316,8 @@ def patch(user_id):
             new_status['agency_ein'] = agency_ein
             update_object(
                 new_status,
-                AgencyUsers,
-                (user_.guid, agency_ein)
+                Users,
+                user_.guid
             )
             event_kwargs = {
                 'request_id': user_.anonymous_request.id if user_.is_anonymous_requester else None,

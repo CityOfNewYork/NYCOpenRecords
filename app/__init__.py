@@ -9,38 +9,37 @@ import os
 import redis
 from business_calendar import Calendar, MO, TU, WE, TH, FR
 from celery import Celery
-from flask import (Flask, abort, render_template, request as flask_request)
+from flask import (Flask, abort, redirect, render_template, request as flask_request, session, url_for)
 from flask_bootstrap import Bootstrap
-from flask_elasticsearch import FlaskElasticsearch
-from flask_kvsession import KVSessionExtension
 from flask_login import LoginManager, current_user
 from flask_mail import Mail
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
 from flask_tracy import Tracy
-from flask_wtf import CsrfProtect
+from flask_wtf.csrf import CSRFProtect
+from flask_session import Session
 from raven.contrib.flask import Sentry
-from simplekv.decorator import PrefixDecorator
-from simplekv.memory.redisstore import RedisStore
 
 from app import celery_config
 from app.constants import OPENRECORDS_DL_EMAIL
 from app.lib import NYCHolidays, jinja_filters
 from config import Config, config
+from elasticsearch import Elasticsearch
 
 bootstrap = Bootstrap()
-es = FlaskElasticsearch()
+es = Elasticsearch(Config.ELASTICSEARCH_HOST)
 db = SQLAlchemy()
-csrf = CsrfProtect()
+csrf = CSRFProtect()
 moment = Moment()
 mail = Mail()
 tracy = Tracy()
 login_manager = LoginManager()
-store = RedisStore(redis.StrictRedis(db=Config.SESSION_REDIS_DB,
-                                     host=Config.REDIS_HOST, port=Config.REDIS_PORT))
-session_redis = PrefixDecorator('session_', store)
+store = redis.StrictRedis(db=Config.SESSION_REDIS_DB,
+                          host=Config.REDIS_HOST,
+                          port=Config.REDIS_PORT)
 celery = Celery(__name__, broker=Config.CELERY_BROKER_URL)
 sentry = Sentry()
+sess = Session()
 
 upload_redis = redis.StrictRedis(
     db=Config.UPLOAD_REDIS_DB, host=Config.REDIS_HOST, port=Config.REDIS_PORT)
@@ -102,9 +101,6 @@ def create_app(config_name='default'):
     app.jinja_env.filters['format_ultimate_determination_reason'] = jinja_filters.format_ultimate_determination_reason
 
     bootstrap.init_app(app)
-    es.init_app(app,
-                use_ssl=app.config['ELASTICSEARCH_USE_SSL'],
-                verify_certs=app.config['ELASTICSEARCH_VERIFY_CERTS'])
     db.init_app(app)
     csrf.init_app(app)
     moment.init_app(app)
@@ -113,6 +109,8 @@ def create_app(config_name='default'):
     celery.conf.update(app.config)
     celery.config_from_object(celery_config)
     sentry.init_app(app, logging=app.config["USE_SENTRY"], level=logging.INFO)
+    sess.init_app(app)
+    app.elasticsearch = Elasticsearch(Config.ELASTICSEARCH_HOST)
 
     with app.app_context():
         from app.models import Anonymous
@@ -121,7 +119,6 @@ def create_app(config_name='default'):
         if app.config['USE_SAML']:
             login_manager.login_message = None
             login_manager.login_message_category = None
-        KVSessionExtension(session_redis, app)
 
     # Error Handlers
     @app.errorhandler(400)
@@ -175,6 +172,13 @@ def create_app(config_name='default'):
         if os.path.exists(os.path.join(app.instance_path, 'maintenance.json')):
             if not flask_request.cookies.get('authorized_maintainer', None):
                 return abort(503)
+
+    if app.config['USE_MFA']:
+        @app.before_request
+        def check_valid_login():
+            if current_user.is_authenticated:
+                if not session.get('mfa_verified', False) and flask_request.endpoint not in ['mfa.register', 'mfa.verify', 'static', 'auth.logout']:
+                    return redirect(url_for('mfa.verify'))
 
     @app.context_processor
     def add_session_config():
@@ -236,5 +240,9 @@ def create_app(config_name='default'):
 
     from .permissions import permissions
     app.register_blueprint(permissions, url_prefix="/permissions/api/v1.0")
+
+    if app.config['USE_MFA']:
+        from .mfa import mfa
+        app.register_blueprint(mfa, url_prefix="/mfa")
 
     return app
