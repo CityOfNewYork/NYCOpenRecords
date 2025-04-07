@@ -81,6 +81,7 @@ def new():
     kiosk_mode = eval_request_bool(werkzeug_escape(flask_request.args.get("kiosk_mode", False)))
     category = str(werkzeug_escape(flask_request.args.get("category", None)))
     agency = str(werkzeug_escape(flask_request.args.get("agency", None)))
+    agency_name = str(werkzeug_escape(flask_request.args.get("agency_name", None)))
     title = str(werkzeug_escape(flask_request.args.get("title", None)))
 
     if current_user.is_public:
@@ -256,6 +257,7 @@ def new():
         kiosk_mode=kiosk_mode,
         category=category,
         agency=agency,
+        agency_name=agency_name,
         title=title,
     )
 
@@ -509,18 +511,11 @@ def get_agencies_as_choices():
             ],
             key=lambda x: x[1],
         )
+        choices.insert(0, ("", ""))
     else:
-        choices = sorted(
-            [
-                (agencies.ein, agencies.name)
-                for agencies in Agencies.query.all()
-                if agencies.ein not in HIDDEN_AGENCIES
-            ],
-            key=lambda x: x[1],
-        )
-    choices.insert(
-        0, ("", "")
-    )  # Insert blank option at the beginning of choices to prevent auto selection
+        # Don't populate agency choices until a category is selected
+        choices = []
+        choices.insert(0, ("", "Please select a category first.")) # Insert blank option at the beginning of choices to prevent auto selection
     return jsonify(choices)
 
 

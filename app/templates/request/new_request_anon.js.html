@@ -28,13 +28,16 @@
         {% if category %}
             $("#request-category option[value=\"{{ category }}\"]").attr('selected', 'selected');
         {% endif %}
-        {% if agency %}
+        {% if agency and agency_name %}
+            $("#request-agency").append(new Option("{{ agency_name }}", "{{ agency }}"));
             $("#request-agency option[value={{ agency }}]").attr('selected', 'selected');
         {% endif %}
         {% if title %}
             $("#request-title").val("{{ title }}");
         {% endif %}
 
+        // Disable agency dropdown until a category is selected
+        $("#request-agency").prop("disabled", true);
         // Determine if the agencyRequestInstructions need to be shown on page load.
         getRequestAgencyInstructions();
         // Check for custom request forms on page load (browser back button behavior).
@@ -81,6 +84,12 @@
                     previousValues = [];
                     currentValues = [];
                     getCustomRequestForms(sel.find("option:first-child").val());
+                    // Enable/disable agency dropdown based on the value of category
+                    if ($("#request-category").val() === "") {
+                        $("#request-agency").prop("disabled", true);
+                    } else {
+                        $("#request-agency").prop("disabled", false);
+                    }
                 }
             });
         });
@@ -169,7 +178,7 @@
         // Apply parsley validation styles to the input forms for a new request.
 
         // Loop through required fields and apply a data-parsley-required attribute to them
-        var requiredFields = ["request-title", "request-description", "request-agency", "first-name",
+        var requiredFields = ["request-title", "request-description", "request-agency", "request-category", "first-name",
             "last-name", "email",
             "phone", "fax", "address-line-1", "city", "zipcode"
         ];
@@ -191,9 +200,13 @@
         $("#zipcode").attr("data-parsley-length", "[5,5]");
 
         // Custom Validation Messages
+        $("#request-category").attr("data-parsley-required-message",
+            "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+            "<strong>Error, a category is required.</strong> Please select a category from the drop-down menu."
+            );
         $("#request-agency").attr("data-parsley-required-message",
             "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
-            "<strong>Error, an agency is required.</strong> Please select an agency from the drop-down menu."
+            "<strong>Error, an agency is required.</strong> Please select a category first then an agency from the drop-down menu."
             );
         $("#request-title").attr("data-parsley-required-message",
             "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
@@ -321,7 +334,9 @@
             }
 
             // Scroll to input label if parsley validation fails
-            if ($("#request-agency").parsley().isValid() === false) {
+            if ($("#request-category").parsley().isValid() === false) {
+                $(window).scrollTop($(".category-label").offset().top);
+            } else if ($("#request-agency").parsley().isValid() === false) {
                 $(window).scrollTop($(".agency-label").offset().top);
             } else if ($("#request-title").parsley().isValid() === false) {
                 $(window).scrollTop($(".title-label").offset().top);
@@ -365,6 +380,12 @@
 
         // Disable submit button on form submission
         $("#request-form").on("submit", function (e) {
+            {% if kiosk_mode %}
+                // Enable kiosk mode fields on submit
+                $("#request-category").prop('disabled', false);
+                $("#request-agency").prop('disabled', false);
+                $("#request-title").prop('disabled', false);
+            {% endif %}
             $(".remove-on-resubmit").remove();
             if ($("#request-form").parsley().isValid()) {
                 // section to check if at least one request type has been selected
