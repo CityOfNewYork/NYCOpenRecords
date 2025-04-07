@@ -33,8 +33,8 @@ function bindFileUpload(target,
         formData: for_update ? {update: true, response_id: response_id} : {},
         uploadTemplateId: uploadTemplateId,
         downloadTemplateId: downloadTemplateId,
-        maxChunkSize: 512000,  // 512 kb
-        maxFileSize: 500000000, // 500 mb
+        maxChunkSize: 104857600, // 100 mb
+        maxFileSize: 1073741824, // 1 gb
         // maxNumberOfFiles: isIE ? 10 : 1000,
         chunksend: function (e, data) {
             // stop sending chunks if abort signaled
