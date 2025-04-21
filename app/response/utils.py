@@ -450,7 +450,7 @@ def add_closing(request_id, reason_ids, content, method, letter_template_id):
                                    request_id=request_id,
                                    reason="Request is already closed or has not been acknowledged")
 
-def add_closing_cli(request_id, reason_text, date_closed):
+def add_closing_cli(request_id, reason_text, date_closed, send_emails):
     """
     Create and store a closing-determination response for the specified request and update the request accordingly.
     Meant to be used with the CLI command close_requests
@@ -458,6 +458,7 @@ def add_closing_cli(request_id, reason_text, date_closed):
     :param request_id: FOIL request ID
     :param reason_text: reason text for closing
     :param date_closed: date the request is closed
+    :param send_emails: boolean to determine if closing emails should be sent
     """
     request = Requests.query.filter_by(id=request_id).one()
     if request.status != request_status.CLOSED:
@@ -517,6 +518,19 @@ def add_closing_cli(request_id, reason_text, date_closed):
         create_object(response)
         create_response_event(event_type.REQ_CLOSED, response)
         request.es_update()
+
+        if send_emails:
+            page = urljoin(flask_request.host_url, url_for('request.view', request_id=request_id))
+            email_content = render_template('email_templates/email_response_closing_cli.html',
+                                            request_id=request_id,
+                                            agency_name=request.agency.name,
+                                            page=page,
+                                            reason=reason_text)
+            email_id = _send_response_email(request_id,
+                                            RELEASE_AND_PUBLIC,
+                                            email_content,
+                                            'Request {} Closed'.format(request_id))
+            _create_communication_method(response.id, email_id, response_type.EMAIL)
 
 
 def add_quick_closing(request_id, days, date, tz_name, content):
