@@ -1,10 +1,79 @@
 {% if default_content %}
-    <p>
-        The {{ agency_name }} has <strong>acknowledged and closed</strong> your FOIL request <a
-            href="{{ page }}">{{ request_id }}</a> for the following reason:
-    </p>
+    <span class="mceNonEditable">
+        The {{ agency_name }} has {% if not request_was_acknowledged %}<strong>acknowledged</strong> and {% endif %}
+        <strong>closed</strong> your FOIL request <a href="{{ page }}">{{ request_id }}</a> for the following reason:
+    </span>
     {{ reasons | safe }}
-    <p>Please visit <a href="{{ page }}">{{ request_id }}</a> to view additional information and take any necessary action.</p>
+
+    <p>
+        The {{ agency_name }} has responded to your FOIL request <a href='{{ page }}'>{{ request_id }}</a> with
+        the following record(s).
+    </p>
+
+    {% if public_requester %}
+        <p>
+            <span class="mceNonEditable">
+                <strong>NOTE</strong>: You must be logged in to your OpenRecords account to access the record(s).
+                If you are not logged in, you will be prompted to do so when the link is selected.
+            </span>
+        </p>
+    {% endif %}
+
+        {% if release_public_links %}
+        <p>
+            <span class="mceNonEditable">The record(s) listed below will be accessible to the public on the OpenRecords portal in 20 business days
+                ({{ moment(release_date).format('dddd, MMMM D, YYYY') }}).</span>
+        </p>
+        <div class="file-links">
+            <ul>
+                {% for file in release_public_links %}
+                    <li style="list-style: none">
+                        <span class="mceNonEditable">{{ file['title'] }}: <a href="{{ file['link'] }}">{{ file['filename'] }}</a></span>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% if release_private_links %}
+            <p>
+                <span class="mceNonEditable">
+                    The record(s) listed below will not be publicly available on the OpenRecords portal.
+                </span>
+            </p>
+            <ul>
+                {% for file in release_private_links %}
+                    <li style="list-style: none">
+                        <span class="mceNonEditable">{{ file['title'] }}: <a href="{{ file['link'] }}">{{ file['filename'] }}</a></span>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+        </div>
+    {% endif %}
+
+    {% if release_private_links and not release_public_links %}
+        <p>
+            <span class="mceNonEditable">
+                The record(s) listed below will not be publicly available on the OpenRecords portal.
+            </span>
+        </p>
+        <div class="file-links">
+            <ul>
+                {% for file in release_private_links %}
+                    <li style="list-style: none">
+                        <span class="mceNonEditable">{{ file['title'] }}: <a href="{{ file['link'] }}">{{ file['filename'] }}</a></span>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+    {% if has_appeals_language %}
+        <span class="mceNonEditable">You may appeal the decision to deny access to material that was redacted in part or withheld in entirety
+        by contacting the agency's FOIL Appeals Officer: <a
+                    href="mailto:{{ agency_appeals_email }}?subject={{ request.id }}%20-%20Appeal">{{ agency_appeals_email }}</a>
+        within 30 days.
+    </span>
+    <br><br>
+    {% endif %}
 {% else %}
     {{ content | safe }}
 {% endif %}

@@ -22,7 +22,8 @@ from flask import (
     url_for,
     jsonify,
     Markup,
-    escape
+    escape,
+    flash
 )
 from flask_login import current_user
 from sqlalchemy.orm import joinedload
@@ -519,7 +520,7 @@ def add_closing_cli(request_id, reason_text, date_closed):
         request.es_update()
 
 
-def add_quick_closing(request_id, days, date, tz_name, content):
+def add_quick_closing(request_id, days, date, tz_name, content, files, replace_string):
     """Create and store an acknowledgement-determination response followed by a closing-determination response for
     the specified request and update the request accordingly.
 
@@ -529,10 +530,14 @@ def add_quick_closing(request_id, days, date, tz_name, content):
         date: date of request completion
         tz_name: client's timezone name
         content: body text associated with the acknowledgment/closing
+        files: uploaded file responses
+        replace_string: random string to be replaced with file links
     """
-    # Acknowledgement actions
     request = Requests.query.filter_by(id=request_id).one()
-    if not request.was_acknowledged:
+
+    # Acknowledgement actions
+    request_acknowledged = request.was_acknowledged
+    if not request_acknowledged:
         previous_due_date = {'due_date': request.due_date.isoformat()}
         previous_status = request.status
         new_due_date = _get_new_due_date(request_id, days, date, tz_name)
@@ -558,10 +563,31 @@ def add_quick_closing(request_id, days, date, tz_name, content):
             previous_value={'status': previous_status},
             new_value={'status': request.status}
         )
-    else:
-        raise UserRequestException(action='acknowledge',
-                                   request_id=request_id,
-                                   reason='Request has already been acknowledged')
+
+    # File actions
+    release_public_links = []
+    release_private_links = []
+    private_links = []
+    for file_data in files:
+        response_obj = add_file(request.id,
+                                file_data,
+                                files[file_data]['title'],
+                                files[file_data]['privacy'],
+                                files[file_data]['is-dataset'],
+                                files[file_data]['dataset-description'],
+                                is_editable=True)
+        if not isinstance(response_obj, Files):
+            flash(message=response_obj, category='danger')
+        else:
+            get_file_links(response_obj, release_public_links, release_private_links, private_links)
+    release_date = get_release_date(datetime.utcnow(), RELEASE_PUBLIC_DAYS, tz_name).strftime("%A, %B %d, %Y")
+    email_content_requester = content.replace(replace_string,
+                                              render_template('email_templates/response_file_links.html',
+                                                              release_public_links=release_public_links,
+                                                              release_private_links=release_private_links,
+                                                              is_anon=request.requester.is_anonymous_requester,
+                                                              release_date=release_date
+                                                              ))
 
     # Closing actions
     if request.status != request_status.CLOSED and (
@@ -595,7 +621,7 @@ def add_quick_closing(request_id, days, date, tz_name, content):
             previous_value={'status': previous_status, 'date_closed': previous_date_closed},
             new_value={'status': request.status, 'date_closed': request.date_closed.isoformat()}
         )
-        reason = Reasons.query.filter_by(title='Fulfilled via Walk In').one()
+        reason = Reasons.query.filter_by(title='Fulfilled in Whole').one()
         if not calendar.isbusday(datetime.utcnow()) or datetime.utcnow().date() < request.date_submitted.date():
             # push the closing date to the next business day if it is a weekend/holiday
             # or if it is before the date submitted
@@ -621,12 +647,19 @@ def add_quick_closing(request_id, days, date, tz_name, content):
                                    request_id=request_id,
                                    reason='Request is already closed or has not been acknowledged')
 
+    # Determine email subject and send
+    if request_acknowledged:
+        email_subject = "Request {} Closed and Records Provided".format(request_id)
+    else:
+        email_subject = "Request {} Acknowledged and Closed, Records Provided".format(request_id)
     email_id = _send_response_email(request_id,
-                                    privacy,
-                                    content,
-                                    'Request {} Acknowledged and Closed'.format(request_id))
+                                    RELEASE_AND_PUBLIC,
+                                    email_content_requester,
+                                    email_subject)
+
     # Create 2 CommunicationMethod objects, one for each determination
-    _create_communication_method(acknowledgement_response.id, email_id, response_type.EMAIL)
+    if not request_acknowledged:
+        _create_communication_method(acknowledgement_response.id, email_id, response_type.EMAIL)
     _create_communication_method(closing_response.id, email_id, response_type.EMAIL)
 
 
@@ -1812,7 +1845,16 @@ def _quick_closing_email_handler(request_id, data, page, agency_name, email_temp
     Returns:
         The HTML of the rendered template of a quick closing
     """
+    # Acknowledgement data
     acknowledgment = data.get('acknowledgment')
+
+    # File data
+    private_links = []
+    release_public_links = []
+    release_private_links = []
+    release_date = None
+
+    # Request data
     header = CONFIRMATION_EMAIL_HEADER_TO_REQUESTER
     request = Requests.query.filter_by(id=request_id).one()
 
@@ -1829,6 +1871,7 @@ def _quick_closing_email_handler(request_id, data, page, agency_name, email_temp
     else:
         description_hidden_by_default = False
 
+    # Process acknowledgement data
     if acknowledgment is not None:
         acknowledgment = json.loads(acknowledgment)
         default_content = True
@@ -1845,9 +1888,37 @@ def _quick_closing_email_handler(request_id, data, page, agency_name, email_temp
         date = None
         info = None
 
-    # Get reason text for Fulfilled via Walk In
+    # Process file data
+    files = data.get('files')
+    # if data['files'] exists, use email_content as template with specific file email template
+    if files is not None:
+        files = json.loads(files)
+        default_content = True
+        content = None
+        header = CONFIRMATION_EMAIL_HEADER_TO_REQUESTER
+        for file_ in files:
+            file_link = {'filename': file_['filename'],
+                         'title': file_['title'],
+                         'link': '#'}
+            if eval_request_bool(data['is_private']):
+                private_links.append(file_link)
+            elif file_.get('privacy') == RELEASE_AND_PUBLIC:
+                release_public_links.append(file_link)
+            elif file_.get('privacy') == RELEASE_AND_PRIVATE:
+                release_private_links.append(file_link)
+        if release_public_links or release_private_links:
+            release_date = get_release_date(datetime.utcnow(),
+                                            RELEASE_PUBLIC_DAYS,
+                                            data.get('tz_name'))
+    # use default_content in response template
+    else:
+        default_content = False
+        header = None
+        content = data['email_content']
+
+    # Get reason text for Fulfilled in Whole
     _reasons = Reasons.query.with_entities(Reasons.title, Reasons.content, Reasons.has_appeals_language,
-                                            Reasons.type).filter_by(title='Fulfilled via Walk In').one()
+                                            Reasons.type).filter_by(title='Fulfilled in Whole').one()
     reasons_text = [_reasons.content]
     reasons = render_template(
         os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], '_email_response_determinations_list.html'),
@@ -1865,7 +1936,14 @@ def _quick_closing_email_handler(request_id, data, page, agency_name, email_temp
                                                 date=date,
                                                 info=info,
                                                 page=page,
-                                                reasons=reasons),
+                                                reasons=reasons,
+                                                public_requester=request.requester.has_nyc_account,
+                                                release_date=release_date,
+                                                release_public_links=release_public_links,
+                                                release_private_links=release_private_links,
+                                                private_links=private_links,
+                                                request_was_acknowledged=request.was_acknowledged
+                                                ),
                     'header': header}), 200
 
 

@@ -277,6 +277,7 @@ def response_closing(request_id):
 
 @response.route('/quick-closing/<request_id>', methods=['POST'])
 @has_permission(permission.ACKNOWLEDGE)
+@has_permission(permission.ADD_FILE)
 @has_permission(permission.CLOSE)
 def response_quick_closing(request_id):
     """Endpoint for quick closing a request that takes in form data from the front end.
@@ -292,7 +293,7 @@ def response_quick_closing(request_id):
         Redirect to view request page
     """
     required_fields = ['email-date',
-                       'summary']
+                       'email-file-summary']
     for field in required_fields:
         if not flask_request.form.get(field, ''):
             flash('Uh Oh, it looks like the acknowledgement/closing {} is missing! '
@@ -302,9 +303,11 @@ def response_quick_closing(request_id):
         add_quick_closing(request_id=request_id,
                           days=request_date.DEFAULT_QUICK_CLOSING_DAYS,
                           date=flask_request.form['email-date'],
-                          tz_name=flask_request.form['tz-name'] if flask_request.form['tz-name'] else
+                          tz_name=flask_request.form['tz_name'] if flask_request.form['tz_name'] else
                           current_app.config['APP_TIMEZONE'],
-                          content=flask_request.form['summary'])
+                          content=flask_request.form['email-file-summary'],
+                          files=process_upload_data(flask_request.form),
+                          replace_string=flask_request.form['replace-string'])
     except UserRequestException as e:
         sentry.captureException()
         flash(str(e), category='danger')

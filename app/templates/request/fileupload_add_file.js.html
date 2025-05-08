@@ -3,4 +3,7 @@
 
     /* For Add File */
     bindFileUpload('#fileupload', "{{ request.id }}", '#duplicate-file-modal');
+
+    /* For Quick Close file upload */
+    bindFileUpload('#quick-closing-fileupload', "{{ request.id }}", '#duplicate-file-modal', false, null, 'template-upload', 'quick-close-template-download');
 </script>

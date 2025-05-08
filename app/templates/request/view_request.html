@@ -54,9 +54,9 @@
                                     {% if permissions['deny'] %}
                                         <li><a href="#deny-request" data-toggle="tab">Deny</a></li>
                                     {% endif %}
-{#                                    {% if permissions['acknowledge'] and permissions['close'] %}#}
-{#                                        <li><a href="#quick-close-request" data-toggle="tab">Quick Close</a></li>#}
-{#                                    {% endif %}#}
+                                    {% if permissions['acknowledge'] and permissions['add_file'] and permissions['close'] %}
+                                        <li><a href="#quick-close-request" data-toggle="tab">Quick Close</a></li>
+                                    {% endif %}
                                     {% if generate_letters_enabled and permissions['generate_letter'] %}
                                         <li><a href="#generate-letter" data-toggle="tab">Generate Letter</a></li>
                                         <li><a href="#generate-envelope" data-toggle="tab">Generate Envelope</a></li>
@@ -95,6 +95,9 @@
                                     {% endif %}
                                     {% if permissions['close'] %}
                                         <li><a href="#close-request" data-toggle="tab">Close</a></li>
+                                    {% endif %}
+                                    {% if permissions['acknowledge'] and permissions['add_file'] and permissions['close'] %}
+                                        <li><a href="#quick-close-request" data-toggle="tab">Quick Close</a></li>
                                     {% endif %}
                                     {% if active_users and permissions['add_user'] %}
                                         <li><a href="#add-user" data-toggle="tab">Add User</a></li>
@@ -141,11 +144,11 @@
                                         </div>
                                     {% endif %}
 
-{#                                    {% if permissions['acknowledge'] and permissions['close'] %}#}
-{#                                        <div class="tab-pane" id="quick-close-request">#}
-{#                                            {% include "response/add_quick_closing.html" %}#}
-{#                                        </div>#}
-{#                                    {% endif %}#}
+                                    {% if permissions['acknowledge'] and permissions['add_file'] and permissions['close'] %}
+                                        <div class="tab-pane" id="quick-close-request">
+                                            {% include "response/add_quick_closing.html" %}
+                                        </div>
+                                    {% endif %}
 
                                     {% if permissions['add_note'] %}
                                         <div class="tab-pane" id="add-note">
@@ -205,6 +208,11 @@
                                     {% if permissions['close'] %}
                                         <div class="tab-pane" id="close-request">
                                             {% include "response/add_closing.html" %}
+                                        </div>
+                                    {% endif %}
+                                    {% if permissions['acknowledge'] and permissions['add_file'] and permissions['close'] %}
+                                        <div class="tab-pane" id="quick-close-request">
+                                            {% include "response/add_quick_closing.html" %}
                                         </div>
                                     {% endif %}
                                     {% if active_users and permissions['add_user'] %}
@@ -336,9 +344,9 @@
     {% if permissions['close'] %}
         {% include 'response/add_closing.js.html' %}
     {% endif %}
-{#    {% if request.status != status.CLOSED and permissions['acknowledge'] and permissions['close'] and (request.status == status.OPEN or not (request.was_acknowledged or request.was_reopened)) %}#}
-{#        {% include 'response/add_quick_closing.js.html' %}#}
-{#    {% endif %}#}
+    {% if permissions['acknowledge'] and permissions['add_file'] and permissions['close'] %}
+        {% include 'response/add_quick_closing.js.html' %}
+    {% endif %}
     {% if permissions['re_open'] %}
         {% include 'response/add_reopening.js.html' %}
     {% endif %}
