@@ -76,11 +76,21 @@
                     <div role="presentation">
                         <div class="files"></div>
                     </div>
+                    <div class="form-group">
+                        {{ quick_close_request_form.csrf_token }}
+                        {{ quick_close_request_form.reasons.label }}<br>
+                        {{ quick_close_request_form.reasons(id="quick-closing-reason-ids",
+                                                     class="disable-enter-submit form-control",
+                                                     size=10) | safe }}
+                    </div>
                     <button type="button" class="next next-btn btn btn-primary">Next</button>
                 </div>
                 <!-- second div of the add-file form containing email content -->
                 <div class="quick-close-second" hidden>
                     <h4>Edit Email Body</h4>
+                    <div id="quick-close-additional-details-warning" class="alert alert-warning hidden" role="alert">
+                        <strong>Please provide additional details when selecting this reason.</strong>
+                    </div>
                     <div id="quick-close-editor" class="form-group">
                         <div class="email-file-quick-close-content-hidden" hidden></div>
                         <textarea class="tinymce-area" name="email-file-quick-close-content" title="email-content"></textarea>

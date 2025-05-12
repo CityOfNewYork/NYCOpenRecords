@@ -264,6 +264,8 @@ class DeterminationForm(Form):
             self.reasons.choices = (
                 agency_closings + agency_denials + default_closings + default_denials
             )
+        elif determination_type.CLOSING in self.ultimate_determination_type:
+            self.reasons.choices = agency_closings + default_closings
         elif determination_type.DENIAL in self.ultimate_determination_type:
             self.reasons.choices = agency_denials + default_denials
         elif determination_type.REOPENING in self.ultimate_determination_type:
@@ -294,6 +296,10 @@ class CloseRequestForm(DeterminationForm):
         determination_type.DENIAL,
     ]
 
+class QuickCloseRequestForm(DeterminationForm):
+    # TODO: Add class docstring
+    reasons = SelectMultipleField("Reasons for Closing (Choose 1 or more)")
+    ultimate_determination_type = [determination_type.CLOSING]
 
 class ReopenRequestForm(DeterminationForm):
     # TODO: Add class docstring

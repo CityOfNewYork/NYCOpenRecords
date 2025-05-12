@@ -13,6 +13,8 @@
         var prev3 = third.find(".prev");
         var submit = third.find("#file-submit");
 
+        var reason_ids = first.find("#quick-closing-reason-ids");
+
         var hiddenEmailDiv = third.find(".email-hidden-div");
 
         var addFile = first.find("#add-files");
@@ -20,10 +22,18 @@
 
         // Apply parsley required validation
         addFile.attr('data-parsley-required', 'false');
+        reason_ids.attr("data-parsley-required", "");
 
         // Apply parsley error message to a specific container
         addFile.attr('data-parsley-errors-container', '.fileupload-buttonbar');
 
+        // Do not reset on click
+        reason_ids.find('option').mousedown(function(e) {
+            e.preventDefault();
+            reason_ids.focus();
+            $(this).prop('selected', !$(this).prop('selected'));
+            return false;
+        });
 
         var is_private;
 
@@ -47,6 +57,9 @@
             $(".file-dataset-description").attr("data-parsley-required-message",
                 "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
                 "<strong>Error, dataset description is required.</strong> Please provide a description.");
+            reason_ids.attr("data-parsley-required-message",
+                "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+                "<strong>Error, closing reason is required.</strong> Please select at least one closing reason from the multi-select field.");
 
             // Validate file input field and file form
             form.parsley().validate();
@@ -130,7 +143,8 @@
                         }),
                         files: JSON.stringify(files),
                         is_private: is_private,
-                        tz_name: jstz.determine().name()
+                        tz_name: jstz.determine().name(),
+                        reason_ids: reason_ids.val()
                     },
                     success: function (data) {
                         var emailContent = second.find(".email-file-quick-close-content-hidden");
@@ -140,6 +154,9 @@
                         $(".file-confirmation-header").text(data.header);
                         editor.unblock();
                         next2.prop('disabled', false);
+                        if (data.showAdditionalDetailsWarning) {
+                            $('#quick-close-additional-details-warning').removeClass('hidden');
+                        }
                     }
                 });
                 first.hide();

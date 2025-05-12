@@ -1916,13 +1916,32 @@ def _quick_closing_email_handler(request_id, data, page, agency_name, email_temp
         header = None
         content = data['email_content']
 
-    # Get reason text for Fulfilled in Whole
-    _reasons = Reasons.query.with_entities(Reasons.title, Reasons.content, Reasons.has_appeals_language,
-                                            Reasons.type).filter_by(title='Fulfilled in Whole').one()
-    reasons_text = [_reasons.content]
+    # Get reason text
+    _reasons = [Reasons.query.with_entities(Reasons.title,
+                                            Reasons.content,
+                                            Reasons.has_appeals_language,
+                                            Reasons.type,
+                                            Reasons.need_additional_details).filter_by(id=reason_id).one()
+                for reason_id in data.getlist('reason_ids[]')]
+
+    has_appeals_language = False
+    need_additional_details = False
+    custom_reasons = False
+
+    reasons_text = []
+    # Render the jinja for the reasons content
+    for reason in _reasons:
+        if reason.need_additional_details:
+            need_additional_details = True
+        if reason.has_appeals_language:
+            has_appeals_language = True
+
+        reasons_text.append(render_template_string(reason.content, user=None))
+
     reasons = render_template(
         os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], '_email_response_determinations_list.html'),
-        reasons=reasons_text
+        reasons=reasons_text,
+        custom_reasons=custom_reasons
     )
 
     return jsonify({'template': render_template(email_template,
@@ -1932,6 +1951,7 @@ def _quick_closing_email_handler(request_id, data, page, agency_name, email_temp
                                                 content=content,
                                                 request=request,
                                                 request_id=request_id,
+                                                agency_appeals_email=request.agency.appeals_email,
                                                 agency_name=agency_name,
                                                 date=date,
                                                 info=info,
@@ -1942,9 +1962,11 @@ def _quick_closing_email_handler(request_id, data, page, agency_name, email_temp
                                                 release_public_links=release_public_links,
                                                 release_private_links=release_private_links,
                                                 private_links=private_links,
-                                                request_was_acknowledged=request.was_acknowledged
+                                                request_was_acknowledged=request.was_acknowledged,
+                                                has_appeals_language=has_appeals_language
                                                 ),
-                    'header': header}), 200
+                    'header': header,
+                    "showAdditionalDetailsWarning": need_additional_details,}), 200
 
 
 def _user_request_added_email_handler(request_id, data, page, agency_name, email_template):

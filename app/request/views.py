@@ -43,6 +43,7 @@ from app.request.forms import (
     GenerateResponseLetterForm,
     SearchRequestsForm,
     CloseRequestForm,
+    QuickCloseRequestForm,
     ContactAgencyForm,
     ReopenRequestForm,
 )
@@ -444,6 +445,7 @@ def view(request_id):
         contact_agency_form=ContactAgencyForm(current_request),
         deny_request_form=DenyRequestForm(current_request.agency.ein),
         close_request_form=CloseRequestForm(current_request.agency.ein),
+        quick_close_request_form=QuickCloseRequestForm(current_request.agency_ein),
         reopen_request_form=ReopenRequestForm(current_request.agency.ein),
         remove_user_request_form=RemoveUserRequestForm(assigned_users),
         add_user_request_form=AddUserRequestForm(active_users),
