@@ -145,6 +145,10 @@ class Config:
     RECAPTCHA_PRIVATE_KEY = os.environ.get("RECAPTCHA_PRIVATE_KEY")
     RECAPTCHA_THRESHOLD = float(os.environ.get("RECAPTCHA_THRESHOLD"))
 
+    # Google Analytics Settings
+    GOOGLE_ANALYTICS_ENABLED = os.environ.get("GOOGLE_ANALYTICS_ENABLED") == "True"
+    GOOGLE_ANALYTICS_ID = os.environ.get("GOOGLE_ANALYTICS_ID")
+
     # ElasticSearch settings
     ELASTICSEARCH_HOST = os.environ.get('ELASTICSEARCH_HOST') or "localhost:9200"
     ELASTICSEARCH_ENABLED = os.environ.get('ELASTICSEARCH_ENABLED') == "True"
