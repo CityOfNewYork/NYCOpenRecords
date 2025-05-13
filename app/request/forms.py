@@ -244,6 +244,13 @@ class DeterminationForm(Form):
                 Reasons.type == determination_type.CLOSING, Reasons.agency_ein == None
             ).order_by(asc(Reasons.id))
         ]
+        default_quick_closings = [
+            (reason.id, reason.title)
+            for reason in Reasons.query.filter(
+                Reasons.type == determination_type.CLOSING, Reasons.agency_ein == None,
+                Reasons.title.in_(["Fulfilled in Whole", "Fulfilled in Part"])
+            ).order_by(asc(Reasons.id))
+        ]
         default_denials = [
             (reason.id, reason.title)
             for reason in Reasons.query.filter(
@@ -266,6 +273,8 @@ class DeterminationForm(Form):
             )
         elif determination_type.CLOSING in self.ultimate_determination_type:
             self.reasons.choices = agency_closings + default_closings
+        elif determination_type.QUICK_CLOSING in self.ultimate_determination_type:
+            self.reasons.choices = agency_closings + default_quick_closings
         elif determination_type.DENIAL in self.ultimate_determination_type:
             self.reasons.choices = agency_denials + default_denials
         elif determination_type.REOPENING in self.ultimate_determination_type:
@@ -299,7 +308,7 @@ class CloseRequestForm(DeterminationForm):
 class QuickCloseRequestForm(DeterminationForm):
     # TODO: Add class docstring
     reasons = SelectMultipleField("Reasons for Closing (Choose 1 or more)")
-    ultimate_determination_type = [determination_type.CLOSING]
+    ultimate_determination_type = [determination_type.QUICK_CLOSING]
 
 class ReopenRequestForm(DeterminationForm):
     # TODO: Add class docstring
