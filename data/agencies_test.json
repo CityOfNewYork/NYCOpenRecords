@@ -2409,6 +2409,37 @@
         }
       },
       "acronym": "CORE"
+    },
+    {
+      "ein": "0012",
+      "parent_ein": "012",
+      "categories": [
+        "Civic Services"
+      ],
+      "name": "Office of the Brooklyn Borough President",
+      "next_request_number": 1,
+      "default_email": "openrecords_agency_default_dev_012@mailinator.com",
+      "appeals_email": "openrecords_agency_appeals_dev_012@mailinator.com",
+      "is_active": true,
+      "agency_features": {
+        "letters": {
+          "generate_letters": false
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "categorized": false,
+          "expand_by_default": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "multiple_request_types": false,
+          "description_hidden_by_default": true
+        },
+        "monitor_agency_requests": [],
+        "specific_request_instructions": {
+          "text": ""
+        }
+      },
+      "acronym": "OBBP"
     }
   ]
 }
