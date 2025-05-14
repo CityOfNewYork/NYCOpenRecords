@@ -64,6 +64,8 @@ services:
       - APP_LAUNCH_DATE=${APP_LAUNCH_DATE}
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PORT=${REDIS_PORT}
+    volumes:
+      - .:/app
     depends_on:
       - db
       - redis

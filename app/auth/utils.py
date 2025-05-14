@@ -32,8 +32,9 @@ from app.constants.web_services import (
     USER_SEARCH_ENDPOINT
 )
 from app.lib.db_utils import create_object, update_object
-from app.lib.onelogin.saml2.auth import OneLogin_Saml2_Auth
-from app.lib.onelogin.saml2.utils import OneLogin_Saml2_Utils
+from app.lib.multi_idp_saml_auth import MultiIdPSAMLAuth
+from onelogin.saml2.auth import OneLogin_Saml2_Auth
+from onelogin.saml2.utils import OneLogin_Saml2_Utils
 from app.lib.user_information import create_mailing_address
 from app.models import AgencyUsers, Events, UserRequests, Users
 from app.user.utils import es_update_assigned_users
@@ -343,7 +344,7 @@ def create_auth_event(auth_event_type: str, user_guid: str, new_value: dict):
 
 # SAML Auth
 
-def init_saml_auth(onelogin_request):
+def init_saml_auth(onelogin_request, idp_id: str):
     """Initialize a SAML SP from a dictionary representation of a Flask request.
 
     Args:
@@ -353,8 +354,24 @@ def init_saml_auth(onelogin_request):
         OneLogin_Saml2_Auth: SAML SP Instance.
 
     """
-    saml_sp = OneLogin_Saml2_Auth(onelogin_request, custom_base_path=current_app.config['SAML_PATH'])
-    return saml_sp
+    multi_idp_auth = MultiIdPSAMLAuth()
+
+    # Load configurations for different IdPs
+    multi_idp_auth.load_idp_config('entraid', {
+        'custom_base_path': current_app.config['SAML_PATH_ENTRAID'],
+        'settings': {
+            # IdP specific settings
+        }
+    })
+
+    multi_idp_auth.load_idp_config('nycid', {
+        'custom_base_path': current_app.config['SAML_PATH_NYCID'],
+        'settings': {
+            # IdP specific settings
+        }
+    })
+
+    return multi_idp_auth.get_auth(idp_id, onelogin_request)
 
 
 def prepare_onelogin_request(flask_request):
@@ -376,7 +393,7 @@ def prepare_onelogin_request(flask_request):
         'request_uri': url_for('auth.saml', _external=True),
         'get_data': flask_request.args.copy(),
         # Uncomment if using ADFS as IdP, https://github.com/onelogin/python-saml/pull/144
-        # 'lowercase_urlencoding': True,
+        'lowercase_urlencoding': True,
         'post_data': flask_request.form.copy()
     }
 

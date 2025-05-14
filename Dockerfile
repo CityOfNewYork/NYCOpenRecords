@@ -5,20 +5,25 @@ RUN apt-get update \
     && apt-get -y --no-install-recommends install \
     libmagic-dev \
     libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz-subset0 \
-    libpq-dev gcc build-essential
+    libpq-dev gcc build-essential \
+    libxml2-dev libxmlsec1-dev libxmlsec1-openssl  # Add these for python3-saml
 
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-COPY requirements/* ./requirements/
-RUN pip install -r requirements/common.txt
+WORKDIR /app
 
-COPY app ./app/
-COPY migrations ./migrations/
-COPY config.py openrecords.py gunicorn_config.py celery_worker.py ./
+COPY requirements/* /app/requirements/
+RUN pip install -r /app/requirements/common.txt
 
-COPY entrypoint.sh ./
-RUN chmod +x ./entrypoint.sh
+#COPY app ./app/
+#COPY migrations ./migrations/
+
+COPY . /app
+#COPY config.py openrecords.py gunicorn_config.py celery_worker.py ./
+
+#COPY entrypoint.sh ./
+#RUN chmod +x ./entrypoint.sh
 
 # ================== PRODUCTION =================
 FROM builder AS production
@@ -32,10 +37,10 @@ CMD ["gunicorn", "-c", "python:gunicorn_config", "openrecords:app"]
 # ================== DEVELOPMENT =================
 FROM builder as development
 
-RUN pip install -r requirements/dev.txt
+RUN pip install -r /app/requirements/dev.txt
 
 EXPOSE 5000
-ENTRYPOINT ["./entrypoint.sh"]
+ENTRYPOINT ["/app/entrypoint.sh"]
 CMD ["flask", "run", "--host", "0.0.0.0"]
 
 # ================== CELERY =================
