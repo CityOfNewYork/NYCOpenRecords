@@ -1,14 +1,15 @@
 import logging
 
 import requests
-from flask import Markup, current_app, json, request
+from flask import current_app, request
 from wtforms import ValidationError
 from wtforms.fields import HiddenField
 from wtforms.widgets import HiddenInput
+from markupsafe import Markup
+from json import JSONEncoder
 
 logger = logging.getLogger(__name__)
 
-JSONEncoder = json.JSONEncoder
 
 RECAPTCHA_TEMPLATE = """
 <script src='https://www.google.com/recaptcha/api.js?render={public_key}&onload=executeRecaptcha{action}' async defer></script>

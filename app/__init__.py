@@ -83,6 +83,7 @@ def create_app(config_name='default'):
     '''))
     app.logger.addHandler(mail_handler)
 
+    os.makedirs(app.config['LOGFILE_DIRECTORY'], exist_ok=True)
     handler_error = TimedRotatingFileHandler(
         os.path.join(app.config['LOGFILE_DIRECTORY'],
                      'openrecords_{}_error.log'.format(app.config['APP_VERSION_STRING'])),

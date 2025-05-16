@@ -21,9 +21,8 @@ from flask import (
     render_template_string,
     url_for,
     jsonify,
-    Markup,
-    escape
 )
+from markupsafe import Markup, escape
 from flask_login import current_user
 from sqlalchemy.orm import joinedload
 from werkzeug.utils import secure_filename

@@ -5,7 +5,7 @@ from multiprocessing import cpu_count
 #       A string of the form: 'HOST', 'HOST:PORT', 'unix:PATH'.
 #       An IP is a valid HOST.
 
-bind = "127.0.0.1:8080"
+bind = ":8080"
 
 #
 # Worker processes

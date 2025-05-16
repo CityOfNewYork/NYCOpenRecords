@@ -13,14 +13,13 @@ from flask import (
     request as flask_request,
     current_app,
     flash,
-    Markup,
     jsonify,
     abort,
-    escape
 )
 from flask_login import current_user
 from sqlalchemy import any_
 from sqlalchemy.orm.exc import NoResultFound
+from markupsafe import Markup, escape
 
 from app.constants import request_status, permission, HIDDEN_AGENCIES
 from app.lib.date_utils import DEFAULT_YEARS_HOLIDAY_LIST, get_holidays_date_list

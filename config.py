@@ -68,8 +68,10 @@ class Config:
     AUTH_TYPE = 'None'
 
     if USE_SAML:
-        SAML_PATH = (os.environ.get('SAML_PATH') or
-                     os.path.join(os.path.abspath(os.path.dirname(__file__)), 'saml'))
+        SAML_PATH_NYCID = os.environ.get('SAML_PATH_NYCID')
+        SAML_PATH_ENTRAID = os.environ.get('SAML_PATH_ENTRAID')
+        # SAML_PATH = (os.environ.get('SAML_PATH') or
+        #              os.path.join(os.path.abspath(os.path.dirname(__file__)), 'saml'))
         WEB_SERVICES_URL = os.environ.get('SAML_WEB_SERVICES_URL')
         VERIFY_WEB_SERVICES = os.environ.get('SAML_VERIFY_WEB_SERVICES') == "True"
         NYC_ID_USERNAME = os.environ.get('SAML_NYC_ID_USERNAME')
@@ -165,7 +167,7 @@ class Config:
                                else None)
     ELASTICSEARCH_CHUNK_SIZE = int(os.environ.get('ELASTICSEARCH_CHUNK_SIZE', 100))
 
-    # https://www.elastic.co/blog/index-vs-type
+    # https://www.elastic.co/blog/index-vs-typea/
 
     SENTRY_DSN = os.environ.get('SENTRY_DSN')
     USE_SENTRY = os.environ.get('USE_SENTRY') == "True"
