@@ -266,17 +266,17 @@
           "generate_letters": false
         },
         "custom_request_forms": {
-          "enabled": false,
+          "enabled": true,
           "categorized": false,
-          "expand_by_default": false,
+          "expand_by_default": true,
           "category_info_text": "",
           "category_warning_text": "",
           "multiple_request_types": false,
-          "description_hidden_by_default": true
+          "description_hidden_by_default": false
         },
         "monitor_agency_requests": [],
         "specific_request_instructions": {
-          "text": "Requests for Body-Worn Camera (BWC) recordings and other police documents should be made directly to the New York City Police Department (NYPD). Requests can be submitted through the OpenRecords portal by selecting NYPD from the dropdown menu.<br/><br/>The Civilian Complaint Review Board (CCRB) only handles civilian complaints involving members of the New York City Police Department. Complaints regarding other matters should be directed to 311 or other relevant city agency."
+          "text": "<p>If you are looking to report a crime, please call 911 or your local precinct.</p><p>The CCRB does not have direct access to NYPD records. If the NYPD records you are seeking, such as a report of a crime or body-worn camera footage, are not part of a CCRB investigation, you will need to request them from the NYPD. You can use this portal and select the New York City Police Department (NYPD) from the dropdown menu or you can find more information here: <a href=\"https://www1.nyc.gov/site/nypd/services/law-enforcement/record-requests.page\" target=\"_blank\" rel=\"noopener noreferrer\">https://www1.nyc.gov/site/nypd/services/law-enforcement/record-requests.page</a></p><p>Officer CCRB Histories can be found here: <a href=\"https://www1.nyc.gov/site/ccrb/policy/MOS-records.page\" target=\"_blank\" rel=\"noopener noreferrer\">https://www1.nyc.gov/site/ccrb/policy/MOS-records.page</a></p><p>Additional statistical information about complaints can be found here: <a href=\"https://data.cityofnewyork.us/browse?Dataset-Information_Agency=Civilian+Complaint+Review+Board+%28CCRB%29&q=&sortBy=relevance\" target=\"_blank\" rel=\"noopener noreferrer\">https://data.cityofnewyork.us/browse?Dataset-Information_Agency=Civilian+Complaint+Review+Board+%28CCRB%29&q=&sortBy=relevance</a></p><p>Many CCRB closing reports are available here: <a href=\"https://www.nyc.gov/site/ccrb/complaints/closing-reports.page\" target=\"_blank\" rel=\"noopener noreferrer\">https://www.nyc.gov/site/ccrb/complaints/closing-reports.page</a></p>"
         }
       },
       "acronym": "CCRB"

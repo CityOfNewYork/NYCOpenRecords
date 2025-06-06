@@ -1677,6 +1677,146 @@
       "repeatable": "1",
       "category": "1",
       "minimum_required": "0"
+    },
+    {
+      "agency_ein": "0054",
+      "form_name": "Complaint Records",
+      "form_description": "",
+      "field_definitions": [
+        {
+          "Case Number": {
+            "name": "ccrb-form1-field1",
+            "type": "input",
+            "required": false
+          }
+        },
+        {
+          "Date of Complaint": {
+            "name": "ccrb-form1-field2",
+            "type": "date",
+            "required": false,
+            "future_date_invalid": true
+          }
+        },
+        {
+          "Complainant/Victim/Witness Name": {
+            "name": "ccrb-form1-field3",
+            "type": "input",
+            "required": false
+          }
+        },
+        {
+          "Involved Officer(s)": {
+            "name": "ccrb-form1-field4",
+            "type": "input",
+            "required": false
+          }
+        },
+        {
+          "Relationship to the Complaint": {
+            "name": "ccrb-form1-field5",
+            "type": "radio",
+            "values": [
+              "Complainant, victim, and/or witness",
+              "Officer",
+              "Attorney or representative for a party to the complaint",
+              "Other/None"
+            ],
+            "required": true,
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Relationship to the Complaint is required.</strong> Please select an option."
+          }
+        },
+        {
+          "Description of Records": {
+            "name": "ccrb-form1-field6",
+            "type": "textarea",
+            "required": true,
+            "help_text": "Please specify the types of records associated with the complaints you are seeking (complaint report, closing report, etc.).",
+            "max_length": "5000",
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Description of Records is required.</strong> Please provide a description.",
+            "character_counter": true
+          }
+        },
+        {
+          "Additional Info": {
+            "name": "ccrb-form1-additional-info1",
+            "type": "raw_html",
+            "raw_html_value": "<p>In order to locate the records, we need as much information as possible. As such, it may help us if you include the contact information you provided at the time of your complaint. You may be asked to provide additional identifying information to help us locate the records.</p><p>For attorneys: In order to release records pertaining to your client(s), we will need a notarized authorization signed by the person(s) you represent allowing us to release those records to you. If possible, please include this with your submission.</p>"
+          }
+        }
+      ],
+      "repeatable": "1",
+      "category": "1",
+      "minimum_required": "0"
+    },
+    {
+      "agency_ein": "0054",
+      "form_name": "Officer Records",
+      "form_description": "",
+      "field_definitions": [
+        {
+          "Officer Name": {
+            "name": "ccrb-form2-field1",
+            "type": "input",
+            "required": false
+          }
+        },
+        {
+          "Tax Number": {
+            "name": "ccrb-form2-field2",
+            "type": "input",
+            "required": false
+          }
+        },
+        {
+          "Shield Number": {
+            "name": "ccrb-form2-field3",
+            "type": "input",
+            "required": false
+          }
+        },
+        {
+          "Command(s)": {
+            "name": "ccrb-form2-field4",
+            "type": "input",
+            "required": false
+          }
+        },
+        {
+          "Description of Records": {
+            "name": "ccrb-form2-field5",
+            "type": "textarea",
+            "required": true,
+            "help_text": "Please specify the types of records related to the officer that you are seeking.",
+            "max_length": "5000",
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Description of Records is required.</strong> Please provide a description.",
+            "character_counter": true
+          }
+        }
+      ],
+      "repeatable": "1",
+      "category": "1",
+      "minimum_required": "0"
+    },
+    {
+      "agency_ein": "0054",
+      "form_name": "Other Request",
+      "form_description": "",
+      "field_definitions": [
+        {
+          "Description of Records": {
+            "name": "ccrb-form3-field1",
+            "type": "textarea",
+            "required": true,
+            "max_length": "5000",
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Description of Records is required.</strong> Please provide a description.",
+            "character_counter": true
+          }
+        }
+      ],
+      "repeatable": "1",
+      "category": "1",
+      "minimum_required": "0"
     }
   ]
 }
