@@ -246,12 +246,34 @@ def requests_doc(doc_type):
         user_agencies = current_user.get_agencies
         for req in all_requests:
             if req.agency_ein in user_agencies:
+                # Determine if description or custom metadata should be used in the report
+                if req.custom_metadata == {} or req.custom_metadata is None:
+                    description_for_report = req.description
+                else:
+                    custom_metadata = req.custom_metadata
+                    custom_metadata_text = ''
+                    for form_number, form_values in sorted(custom_metadata.items()):
+                        custom_metadata_text = custom_metadata_text + 'Request Type: ' + form_values[
+                            'form_name'] + '\n\n'
+                        for field_number, field_values in sorted(form_values['form_fields'].items()):
+                            field_value = field_values.get('field_value', '')
+                            field_value = field_value[:5000]
+                            if field_value is None:
+                                field_value = ''
+                            if isinstance(field_value, list):
+                                custom_metadata_text = custom_metadata_text + field_values[
+                                    'field_name'] + ':\n' + ', '.join(field_values.get('field_value', '')) + '\n\n'
+                            else:
+                                custom_metadata_text = custom_metadata_text + field_values[
+                                    'field_name'] + ':\n' + field_value + '\n\n'
+                        custom_metadata_text = custom_metadata_text + '\n'
+                    description_for_report = custom_metadata_text
                 writer.writerow(
                     [
                         req.id,
                         req.agency.name,
                         Markup(req.title).unescape(),
-                        Markup(req.description).unescape(),
+                        Markup(description_for_report).unescape(),
                         req.agency_request_summary,
                         req.status,
                         req.date_created,
