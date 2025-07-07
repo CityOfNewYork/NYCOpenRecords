@@ -1962,6 +1962,37 @@
         }
       },
       "acronym": "OBBP"
+    },
+    {
+      "ein": "0901",
+      "parent_ein": "901",
+      "categories": [
+        "Public Safety"
+      ],
+      "name": "Manhattan District Attorney’s Office",
+      "next_request_number": 1,
+      "default_email": "FOILIntake@dany.nyc.gov",
+      "appeals_email": "FOILAppeals@dany.nyc.gov",
+      "is_active": true,
+      "agency_features": {
+        "letters": {
+          "generate_letters": false
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "categorized": false,
+          "expand_by_default": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "multiple_request_types": false,
+          "description_hidden_by_default": true
+        },
+        "monitor_agency_requests": [],
+        "specific_request_instructions": {
+          "text": "<p>This page is for FOIL requests for records <strong><u>from the New York County District Attorney’s Office (Manhattan DA) only</u></strong>. If you are looking for records regarding cases prosecuted in Brooklyn, Queens, Staten Island or the Bronx, please go to the respective websites for the District Attorney’s Offices in each of those counties.</p><p><strong><u>Certificates of Disposition</u></strong>: For a Certificate of Disposition for a criminal case, or other New York County Court records, please reach out to the Central Clerk’s Office at 100 Centre Street, Room 1000, New York, NY 10013, 646-386-4000.</p><p><strong><u>Case Records</u></strong>: If you are seeking the New York County District Attorney’s Office’s records for a case, please include the docket or indictment number, or if you do not have that information, the defendant’s name and the approximate date of arrest.</p><p><strong><u>Sealed Cases</u></strong>: If you are seeking records of a <strong><u>case that was dismissed, or ended by acquittal</u></strong>, that case has most likely been sealed pursuant to Criminal Procedure Law (CPL) 160.50 and you must attach either a completed <a href='https://manhattanda.org/wp-content/uploads/2025/07/CPL_160_50_Unsealing.pdf' target='_blank' rel='noopener'>Designation of Agency for Access to Sealed Records Pursuant to CPL 160.50[1][d]</a>, signed by the defendant in the case, or provide a court order unsealing the case.</p><p>If you are seeking records of a case that concluded with a <strong>conviction by a violation or traffic infraction</strong>, that case may have been sealed pursuant to CPL § 160.55 and you must attach either a completed <a href='https://manhattanda.org/wp-content/uploads/2025/07/160-55-Waiver-Form.pdf' target='_blank' rel='noopener'>Designation of Agency for Access to Sealed Records Pursuant to CPL 160.55[1][d]</a>, signed by the defendant in the case, or provide a court order unsealing the case.</p><p><strong><u>Medical Records</u></strong>: If you are seeking medical records from a case file, to protect the privacy of the persons whose medical records you seek, it may be necessary to attach a signed and notarized <a href='https://manhattanda.org/wp-content/uploads/2025/07/hipaa_fillable.pdf' target='_blank' rel='noopener'>waiver</a> from that person. Medical records will not be delivered through OpenRecords.</p><p><strong><u>Cases Involving Sex Crimes</u></strong>: If you are seeking records that might identify the victim of a sex crime, you must include a signed and notarized waiver from that victim under <a href='https://manhattanda.org/wp-content/uploads/2025/07/CRL-50-b-Waiver-Form.pdf' target='_blank' rel='noopener'>Civil Rights Law (CRL) 50-b(1)</a>, or a court order. These records will not be delivered through OpenRecords.</p><p><strong><u>Body-Worn Camera Videos</u></strong>: Body-worn camera footage requires a minimum of four months for review and redaction once the requested video has been located. For footage of homicides or arrests within the past five years, you may wish to submit your request directly to the New York City Police Department (NYPD), to expedite the process. Requests can be submitted to NYPD through the OpenRecords portal by selecting NYPD from the dropdown menu.</p><p><strong><u>Any records to which access is granted will be redacted on privacy and other grounds.</u></strong></p><p>Additional information regarding costs and appeals can be found <a href='https://manhattanda.org/wp-content/uploads/2025/07/Additional-Instructions.pdf' target='_blank' rel='noopener'>here</a>.</p>\n"
+        }
+      },
+      "acronym": "DANY"
     }
   ]
 }
