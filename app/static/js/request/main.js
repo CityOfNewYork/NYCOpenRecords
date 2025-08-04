@@ -857,3 +857,10 @@ function onSubmitRequest(token) {
 function onSubmitTechnicalSupport(token) {
     $("#contact-info").submit();
 }
+
+/**
+ * Handles data-callback for submitting request inquiries when using recaptcha.
+ */
+function onSubmitRequestInquiry(token) {
+    $("#contact-form").submit();
+}

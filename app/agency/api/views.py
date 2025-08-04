@@ -29,6 +29,9 @@ def get_active_users(agency_ein):
     :return: JSON Object({"active_users": [('', 'All'), ('o8pj0k', 'John Doe')],
                           "is_admin": True}), 200
     """
+    if current_user.is_anonymous:
+        return jsonify({}), 403
+
     if current_user.is_agency_admin(agency_ein):
         return jsonify({"active_users": get_active_users_as_choices(agency_ein), "is_admin": True}), 200
 
@@ -173,6 +176,9 @@ def get_request_types(agency_ein):
 
     :return: JSON Object({"request_type": [('', 'All'), ('Form Name', 'Form Name')]}), 200
     """
+    if current_user.is_anonymous:
+        return jsonify({}), 403
+
     if current_user.is_agency_active(agency_ein):
         agency = Agencies.query.filter_by(ein=agency_ein).one_or_none()
         if agency is not None and agency.agency_features['custom_request_forms']['enabled']:

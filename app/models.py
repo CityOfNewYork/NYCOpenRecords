@@ -1120,7 +1120,7 @@ class Events(db.Model):
     @property
     def affected_user(self):
         if self.new_value is not None and "user_guid" in self.new_value:
-            return Users.query.filter_by(guid=self.new_value["user_guid"]).one()
+            return Users.query.filter_by(guid=self.new_value["user_guid"]).one_or_none()
 
     class RowContent(object):
         def __init__(
@@ -1143,6 +1143,8 @@ class Events(db.Model):
             format_args = [self.verb]
             if self.affected_user is not None:
                 format_args += [self.affected_user.name]
+            else:
+                format_args += ["NULL"]
             if self.no_user_string is not None and self.event.user is None:
                 string = self.no_user_string
             else:
