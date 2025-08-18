@@ -113,10 +113,11 @@ def edit(request_id):
     return abort(403)
 
 
-@user_request.route('/<request_id>', methods=['DELETE'])
+@user_request.route('/delete/<request_id>', methods=['POST'])
 def delete(request_id):
     """
     Removes a user from a request and send notification emails.
+    NOTE: Changed DELETE to POST request because of Akami limitation.
 
     Expects a request body containing user's guid and confirmation string.
     Ex:

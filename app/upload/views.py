@@ -159,7 +159,7 @@ def post(request_id):
         return jsonify(response), 200
 
 
-@upload.route('/<r_id_type>/<r_id>/<filecode>', methods=['DELETE'])
+@upload.route('/<r_id_type>/<r_id>/<filecode>', methods=['POST'])
 @login_required
 def delete(r_id_type, r_id, filecode):
     """

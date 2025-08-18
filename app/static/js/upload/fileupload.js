@@ -184,7 +184,8 @@ function deleteUpload(request_id,
                       updated_only,
                       quarantined_only) {
     /*
-    Send a DELETE request to the upload endpoint.
+    Send a POST request to the upload endpoint.
+    NOTE: Changed DELETE to POST request because of Akami limitation.
      */
     var data = {};
     if (updated_only) {
@@ -195,7 +196,7 @@ function deleteUpload(request_id,
     }
 
     $.ajax({
-        type: "DELETE",
+        type: "POST",
         url: sprintf("/upload/request/%s/%s",
             request_id, filecode),
         data: data
