@@ -15,7 +15,7 @@ from operator import ior
 from sqlalchemy import desc
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.orm import column_property
-from sqlalchemy.orm.exc import MultipleResultsFound
+from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 from warnings import warn
 
 from app import db, es, calendar, sentry
@@ -1120,7 +1120,11 @@ class Events(db.Model):
     @property
     def affected_user(self):
         if self.new_value is not None and "user_guid" in self.new_value:
-            return Users.query.filter_by(guid=self.new_value["user_guid"]).one_or_none()
+            try:
+                return Users.query.filter_by(guid=self.new_value["user_guid"]).one().name
+            except NoResultFound:
+                # Fallback to name in new_value if provided
+                return self.new_value.get("name", None)
 
     class RowContent(object):
         def __init__(
@@ -1142,7 +1146,7 @@ class Events(db.Model):
         def __str__(self):
             format_args = [self.verb]
             if self.affected_user is not None:
-                format_args += [self.affected_user.name]
+                format_args += [self.affected_user]
             else:
                 format_args += ["NULL"]
             if self.no_user_string is not None and self.event.user is None:
@@ -1507,11 +1511,13 @@ class UserRequests(db.Model):
         """
         JSON to store in Events 'new_value' field.
         """
+        user = Users.query.filter_by(guid=self.user_guid).one_or_none()
         return {
             "user_guid": self.user_guid,
             "request_user_type": self.request_user_type,
             "permissions": self.permissions,
             "point_of_contact": self.point_of_contact,
+            "name": user.name
         }
 
     def has_permission(self, perm):
