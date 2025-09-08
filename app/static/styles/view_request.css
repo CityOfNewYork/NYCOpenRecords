@@ -130,3 +130,7 @@
 .tinymce-maxlength-error {
     color: #df0000;
 }
+
+.grecaptcha-badge {
+    visibility: hidden;
+}

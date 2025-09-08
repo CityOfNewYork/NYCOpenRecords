@@ -529,6 +529,23 @@ def contact_agency(request_id):
     form = ContactAgencyForm(current_request)
     del form.subject
     if form.validate_on_submit():
+        if current_app.config['RECAPTCHA_ENABLED'] and not current_user.is_agency:
+            try:
+                # Verify recaptcha token and return error if failed
+                recaptcha_response = requests.post(
+                    url='https://www.google.com/recaptcha/api/siteverify?secret={}&response={}'
+                        .format(current_app.config["RECAPTCHA_PRIVATE_KEY"],
+                                flask_request.form["g-recaptcha-response"])).json()
+
+                if recaptcha_response['success'] is False or recaptcha_response['score'] < current_app.config[
+                    "RECAPTCHA_THRESHOLD"]:
+                    current_app.logger.exception("Recaptcha failed to verify response.\n\n{}".format(recaptcha_response))
+                    flash('Recaptcha failed, please try again.', category='danger')
+                    return redirect(url_for("request.view", request_id=request_id))
+            except:
+                current_app.logger.exception("Recaptcha failed to get a response.")
+                flash('Recaptcha failed, please try again.', category='danger')
+                return redirect(url_for("request.view", request_id=request_id))
         create_contact_record(
             current_request,
             flask_request.form["first_name"],

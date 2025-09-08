@@ -210,7 +210,9 @@ def get_request_responses():
     """
     start = int(flask_request.args['start'])
 
-    current_request = Requests.query.filter_by(id=flask_request.args['request_id']).one()
+    current_request = Requests.query.filter_by(id=flask_request.args['request_id']).one_or_none()
+    if current_request is None:
+        return jsonify({}), 403
 
     if current_user.is_agency and \
             (current_user in current_request.agency_users or
