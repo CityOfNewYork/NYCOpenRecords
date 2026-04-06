@@ -134,3 +134,7 @@
 .grecaptcha-badge {
     visibility: hidden;
 }
+
+select[multiple] {
+    overflow-x: scroll;
+}
