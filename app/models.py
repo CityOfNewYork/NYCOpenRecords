@@ -2103,6 +2103,18 @@ class CustomRequestForms(db.Model):
 
 
 class FoilOfficers(db.Model):
+    """
+    Define the FoilOfficers class with the following columns and relationships:
+
+    id - an integer that is the primary key of FoilOfficers
+    agency - a string that is the name of the agency the officer belongs to
+    role - a string that defines the officer's role within the FOIL process
+    first_name - a string that is the officer's first name
+    last_name - a string that is the officer's last name
+    title - a string that is the officer's official job title
+    email - a string that is the officer's email address
+    using_openrecords - a boolean to determine if the officer is actively using the OpenRecords portal or not
+    """
     __tablename__ = "foil_officers"
     id = db.Column(db.Integer, primary_key=True)
     agency = db.Column(db.String)

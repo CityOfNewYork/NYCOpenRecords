@@ -3,7 +3,6 @@
 
    :synopsis: Handles all core URL endpoints for the timeclock application
 """
-from os import name
 
 from flask import (
     current_app,
