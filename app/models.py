@@ -2100,3 +2100,15 @@ class CustomRequestForms(db.Model):
                 )
                 db.session.add(custom_request_form)
             db.session.commit()
+
+
+class FoilOfficers(db.Model):
+    __tablename__ = "foil_officers"
+    id = db.Column(db.Integer, primary_key=True)
+    agency = db.Column(db.String)
+    role = db.Column(db.String)
+    first_name = db.Column(db.String)
+    last_name = db.Column(db.String)
+    title = db.Column(db.String)
+    email = db.Column(db.String)
+    using_openrecords = db.Column(db.Boolean)

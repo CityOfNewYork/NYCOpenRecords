@@ -3,6 +3,8 @@
 
    :synopsis: Handles all core URL endpoints for the timeclock application
 """
+from os import name
+
 from flask import (
     current_app,
     flash,
@@ -103,6 +105,15 @@ def faq():
 @main.route('/about', methods=['GET'])
 def about():
     return render_template('main/about.html')
+
+
+@main.route('/foil-officers-directory', methods=['GET'])
+def foil_officers_directory():
+    from app.models import FoilOfficers
+    foil_officers = FoilOfficers.query.filter(FoilOfficers.role != 'last_updated').order_by(FoilOfficers.agency.asc(),
+                                                                                            FoilOfficers.role.desc()).all()
+    last_updated = FoilOfficers.query.filter(FoilOfficers.role == 'last_updated').one_or_none()
+    return render_template('main/foil_officers_directory.html', foil_officers=foil_officers, last_updated=last_updated)
 
 
 @main.route('/active', methods=['POST'])

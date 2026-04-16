@@ -36,6 +36,9 @@
                 <li class="openrecords_nav">
                     <a class="openrecords-nav-anchor" href="{{ url_for('main.technical_support') }}">Technical Support</a>
                 </li>
+                <li class="openrecords_nav">
+                    <a class="openrecords-nav-anchor" href="{{ url_for('main.foil_officers_directory') }}">FOIL Officers Directory</a>
+                </li>
                 {% if not current_user.is_anonymous %}
                     <li class="openrecords_nav">
                         <a class="openrecords-nav-anchor" href="{{ url_for('auth.manage') }}">Manage Account</a>
