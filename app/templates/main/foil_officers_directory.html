@@ -5,6 +5,7 @@
 {% block content %}
     <div class="container-fluid" role="main">
         <h1 class="text-center" tabindex="0">FOIL Officers Directory</h1>
+        <br>
         <p><strong>Last Updated: {{ last_updated.agency }}</strong></p>
         <p><strong>* – Entities not using OpenRecords</strong></p>
         <br>
@@ -23,7 +24,7 @@
                 <tbody>
                     {% for foil_officer in foil_officers %}
                         <tr>
-                            <th>{% if not foil_officer.using_openrecords %}* {% endif %}{{ foil_officer.agency }}</th>
+                            <th>{{ foil_officer.agency }}{% if not foil_officer.using_openrecords %}&nbsp;*{% endif %}</th>
                             <th>{{ foil_officer.role }}</th>
                             <th>{{ foil_officer.first_name }}</th>
                             <th>{{ foil_officer.last_name }}</th>
