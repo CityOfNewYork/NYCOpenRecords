@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}FOIL Officers Directory{% endblock %}
+
+{% block content %}
+    <div class="container-fluid" role="main">
+        <h1 class="text-center" tabindex="0">FOIL Officers Directory</h1>
+        <br>
+        <p><strong>Last Updated: {{ last_updated.agency }}</strong></p>
+        <p><strong>* – Entities not using OpenRecords</strong></p>
+        <br>
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered table-hover">
+                <thead>
+                    <tr>
+                        <th>Entity</th>
+                        <th>Role</th>
+                        <th>First Name</th>
+                        <th>Last Name</th>
+                        <th>Title</th>
+                        <th>Email</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for foil_officer in foil_officers %}
+                        <tr>
+                            <th>{{ foil_officer.agency }}{% if not foil_officer.using_openrecords %}&nbsp;*{% endif %}</th>
+                            <th>{{ foil_officer.role }}</th>
+                            <th>{{ foil_officer.first_name }}</th>
+                            <th>{{ foil_officer.last_name }}</th>
+                            <th>{{ foil_officer.title or "" }}</th>
+                            <th>{{ foil_officer.email }}</th>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}
