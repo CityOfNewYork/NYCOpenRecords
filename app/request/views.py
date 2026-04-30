@@ -87,14 +87,15 @@ def new():
     if current_user.is_public:
         form = PublicUserRequestForm()
         template_suffix = "user.html"
-    elif current_user.is_anonymous:
-        form = AnonymousRequestForm()
-        template_suffix = "anon.html"
+    #elif current_user.is_anonymous:
+    #    form = AnonymousRequestForm()
+    #    template_suffix = "anon.html"
     elif current_user.is_agency:
         form = AgencyUserRequestForm()
         template_suffix = "agency.html"
     else:
-        raise InvalidUserException(current_user)
+        #raise InvalidUserException(current_user)
+        redirect(url_for("auth.login"))
 
     new_request_template = "request/new_request_" + template_suffix
 
