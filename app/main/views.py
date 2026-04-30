@@ -16,7 +16,7 @@ from app.constants import OPENRECORDS_DL_EMAIL
 from app.constants.response_privacy import PRIVATE
 from app.lib.db_utils import create_object, update_object
 from app.lib.email_utils import send_contact_email
-from app.models import Emails, Users
+from app.models import Emails, FoilOfficers, Users
 from . import main
 import requests
 
@@ -103,6 +103,14 @@ def faq():
 @main.route('/about', methods=['GET'])
 def about():
     return render_template('main/about.html')
+
+
+@main.route('/foil-officers-directory', methods=['GET'])
+def foil_officers_directory():
+    foil_officers = FoilOfficers.query.filter(FoilOfficers.role != 'last_updated').order_by(FoilOfficers.agency.asc(),
+                                                                                            FoilOfficers.role.desc()).all()
+    last_updated = FoilOfficers.query.filter(FoilOfficers.role == 'last_updated').one_or_none()
+    return render_template('main/foil_officers_directory.html', foil_officers=foil_officers, last_updated=last_updated)
 
 
 @main.route('/active', methods=['POST'])
