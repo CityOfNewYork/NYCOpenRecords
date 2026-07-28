@@ -6,6 +6,7 @@ CATEGORIES = [
     ('', ''),
     ('Business', 'Business'),
     ('Civic Services', 'Civic Services'),
+    ('Community Board', 'Community Board'),
     ('Culture & Recreation', 'Culture & Recreation'),
     ('Education', 'Education'),
     ('Environment', 'Environment'),

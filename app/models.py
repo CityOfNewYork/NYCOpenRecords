@@ -1190,7 +1190,7 @@ class Events(db.Model):
                 self,
                 "created",
                 "{} this request on behalf of {}.",
-                self.request.requester,
+                self.request.requester.name if self.request.requester else None,
             ),
             event_type.REQ_ACKNOWLEDGED: self.RowContent(
                 self, "acknowledged", "{} this request."
