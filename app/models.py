@@ -3,7 +3,7 @@ Models for OpenRecords database
 """
 import csv
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from urllib.parse import urljoin
 from uuid import uuid4
 
@@ -1315,7 +1315,7 @@ class Responses(db.Model):
         self.privacy = privacy
         self.date_modified = date_modified or datetime.utcnow()
         self.release_date = release_date or (
-            calendar.addbusdays(datetime.utcnow(), RELEASE_PUBLIC_DAYS)
+            datetime.utcnow() + timedelta(days=RELEASE_PUBLIC_DAYS)
             if privacy == response_privacy.RELEASE_AND_PUBLIC
             else None
         )
@@ -1409,7 +1409,7 @@ class Responses(db.Model):
 
     def make_public(self):
         self.privacy = response_privacy.RELEASE_AND_PUBLIC
-        self.release_date = calendar.addbusdays(datetime.utcnow(), RELEASE_PUBLIC_DAYS)
+        self.release_date = datetime.utcnow() + timedelta(days=RELEASE_PUBLIC_DAYS)
         db.session.commit()
 
     def __repr__(self):

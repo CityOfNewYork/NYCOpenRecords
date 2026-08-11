@@ -6,7 +6,7 @@
 
 """
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from urllib.parse import urljoin, urlencode
 from lxml.html.clean import clean_html
 
@@ -275,8 +275,7 @@ def add_denial(request_id, reason_ids, content, method, letter_template_id):
         else:
             update_vals['date_closed'] = datetime.utcnow()
         if not request.privacy['agency_request_summary'] and request.agency_request_summary is not None:
-            update_vals['agency_request_summary_release_date'] = calendar.addbusdays(datetime.utcnow(),
-                                                                                     RELEASE_PUBLIC_DAYS)
+            update_vals['agency_request_summary_release_date'] = datetime.utcnow() + timedelta(days=RELEASE_PUBLIC_DAYS)
             update_object(
                 update_vals,
                 Requests,
@@ -374,8 +373,7 @@ def add_closing(request_id, reason_ids, content, method, letter_template_id):
         else:
             update_vals['date_closed'] = datetime.utcnow()
         if not request.privacy['agency_request_summary'] and request.agency_request_summary is not None:
-            update_vals['agency_request_summary_release_date'] = calendar.addbusdays(datetime.utcnow(),
-                                                                                     RELEASE_PUBLIC_DAYS)
+            update_vals['agency_request_summary_release_date'] = datetime.utcnow() + timedelta(days=RELEASE_PUBLIC_DAYS)
             update_object(
                 update_vals,
                 Requests,
@@ -473,8 +471,7 @@ def add_closing_cli(request_id, reason_text, date_closed, send_emails):
             else:
                 update_vals['date_closed'] = datetime.utcnow()
         if not request.privacy['agency_request_summary'] and request.agency_request_summary is not None:
-            update_vals['agency_request_summary_release_date'] = calendar.addbusdays(datetime.utcnow(),
-                                                                                     RELEASE_PUBLIC_DAYS)
+            update_vals['agency_request_summary_release_date'] = datetime.utcnow() + timedelta(days=RELEASE_PUBLIC_DAYS)
             update_object(
                 update_vals,
                 Requests,
@@ -588,8 +585,7 @@ def add_quick_closing(request_id, days, date, tz_name, content):
         else:
             update_vals['date_closed'] = datetime.utcnow()
         if not request.privacy['agency_request_summary'] and request.agency_request_summary is not None:
-            update_vals['agency_request_summary_release_date'] = calendar.addbusdays(datetime.utcnow(),
-                                                                                     RELEASE_PUBLIC_DAYS)
+            update_vals['agency_request_summary_release_date'] = datetime.utcnow() + timedelta(days=RELEASE_PUBLIC_DAYS)
             update_object(
                 update_vals,
                 Requests,
@@ -2877,8 +2873,7 @@ class ResponseEditor(metaclass=ABCMeta):
 
     def get_response_release_date(self):
         return {
-            response_privacy.RELEASE_AND_PUBLIC: calendar.addbusdays(
-                datetime.utcnow(), RELEASE_PUBLIC_DAYS),
+            response_privacy.RELEASE_AND_PUBLIC: datetime.utcnow() + timedelta(days=RELEASE_PUBLIC_DAYS),
             response_privacy.RELEASE_AND_PRIVATE: None,
             response_privacy.PRIVATE: None,
         }[self.data_new.get('privacy')]
@@ -3021,8 +3016,7 @@ class RespFileEditor(ResponseEditor):
                 else:
                     # extend expiration date
                     update_object(
-                        {'expiration_date': calendar.addbusdays(datetime.utcnow(),
-                                                                DEFAULT_RESPONSE_TOKEN_EXPIRY_DAYS)},
+                        {'expiration_date': datetime.utcnow() + timedelta(days=DEFAULT_RESPONSE_TOKEN_EXPIRY_DAYS)},
                         ResponseTokens,
                         self.response.token.id
                     )
