@@ -7,6 +7,7 @@
 from datetime import datetime
 
 from flask import (
+    abort,
     jsonify,
     render_template,
     request as flask_request,
@@ -18,6 +19,7 @@ from app.constants import RESPONSES_INCREMENT, EVENTS_INCREMENT
 from app.constants import (
     determination_type,
     event_type,
+    permission,
     response_type,
     response_privacy,
     request_status,
@@ -35,6 +37,7 @@ from app.request.api.utils import create_request_info_event
 
 
 @request_api_blueprint.route('/edit_privacy', methods=['GET', 'POST'])
+@login_required
 def edit_privacy():
     """
     Edits the privacy privacy options of a request's title and agency request summary.
@@ -51,15 +54,21 @@ def edit_privacy():
     agency_request_summary = flask_request.form.get('agency_request_summary')
     type_ = ''
     if title is not None:
+        if not is_allowed(current_user, request_id, permission.CHANGE_PRIVACY_TITLE):
+            return abort(403)
         privacy['title'] = title == 'true'
         previous_value['privacy'] = current_request.privacy['title']
         new_value['privacy'] = privacy['title']
         type_ = event_type.REQ_TITLE_PRIVACY_EDITED
     elif agency_request_summary is not None:
+        if not is_allowed(current_user, request_id, permission.CHANGE_PRIVACY_AGENCY_REQUEST_SUMMARY):
+            return abort(403)
         privacy['agency_request_summary'] = agency_request_summary == 'true'
         previous_value['privacy'] = current_request.privacy['agency_request_summary']
         new_value['privacy'] = privacy['agency_request_summary']
         type_ = event_type.REQ_AGENCY_REQ_SUM_PRIVACY_EDITED
+    else:
+        return abort(400)
     update_object({'privacy': privacy},
                   Requests,
                   current_request.id)
@@ -71,6 +80,7 @@ def edit_privacy():
 
 
 @request_api_blueprint.route('/view/edit', methods=['PUT'])
+@login_required
 def edit_request_info():
     """
     Edits the title and agency request summary of a FOIL request through an API PUT method.
@@ -86,13 +96,19 @@ def edit_request_info():
     type_ = ''
     val = edit_request['value'].strip()
     if edit_request['name'] == 'title':
+        if not is_allowed(current_user, request_id, permission.EDIT_TITLE):
+            return abort(403)
         previous_value['title'] = current_request.title
         new_value['title'] = val
         type_ = event_type.REQ_TITLE_EDITED
     elif edit_request['name'] == 'agency_request_summary':
+        if not is_allowed(current_user, request_id, permission.EDIT_AGENCY_REQUEST_SUMMARY):
+            return abort(403)
         previous_value['agency_request_summary'] = current_request.agency_request_summary
         new_value['agency_request_summary'] = val
         type_ = event_type.REQ_AGENCY_REQ_SUM_EDITED
+    else:
+        return abort(400)
     update_object({edit_request['name']: val if val else None},
                   Requests,
                   current_request.id)
