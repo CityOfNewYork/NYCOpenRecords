@@ -13,17 +13,14 @@ import hmac
 import requests
 from base64 import b64encode
 from flask import (
-    abort, current_app, flash, redirect, request, session, url_for
+    abort, current_app, flash, g, redirect, request, session, url_for
 )
 from flask_login import current_user, login_user, logout_user
 from hashlib import sha256
 from ldap3 import Connection, Server, Tls
 from requests.exceptions import SSLError
 
-from app import (
-    login_manager,
-    sentry
-)
+from app import (login_manager, sentry, session_redis)
 from app.auth.constants import error_msg
 from app.constants import event_type
 from app.constants.bulk_updates import EventsDict
@@ -341,6 +338,24 @@ def create_auth_event(auth_event_type: str, user_guid: str, new_value: dict):
     create_object(event)
 
 
+def register_user_session():
+    """Make this session the user's only valid one.
+
+    Called on the first request after login, when kvsession has assigned a sid.
+    A session that is still live is deleted from Redis; a stale record is
+    replaced without telling the user.
+    """
+    previous_sid = current_user.session_id
+    if previous_sid == session.sid_s:
+        return
+
+    if previous_sid is not None and previous_sid in session_redis:
+        session_redis.delete(previous_sid)
+        g.duplicate_session = True
+
+    update_object({'session_id': session.sid_s}, Users, current_user.guid)
+
+
 # SAML Auth
 
 def init_saml_auth(onelogin_request):
@@ -453,13 +468,15 @@ def saml_slo(saml_sp):
     if 'samlSessionIndex' in session:
         session_index = session['samlSessionIndex']
 
-    update_object(
-        {
-            'session_id': None
-        },
-        Users,
-        current_user.guid
-    )
+    # the local session may already be gone: a timeout, or a logout in another tab
+    if not current_user.is_anonymous:
+        update_object(
+            {
+                'session_id': None
+            },
+            Users,
+            current_user.guid
+        )
 
     return saml_sp.logout(name_id=name_id, session_index=session_index)
 
@@ -511,6 +528,7 @@ def saml_acs(saml_sp, onelogin_request):
         )
         login_user(user)
         session.permanent = True
+        session['register_session'] = True
         create_auth_event(
             auth_event_type=event_type.USER_LOGIN,
             user_guid=user.guid,
@@ -522,9 +540,9 @@ def saml_acs(saml_sp, onelogin_request):
         self_url = OneLogin_Saml2_Utils.get_self_url(onelogin_request)
 
         if 'RelayState' in request.form and self_url != request.form['RelayState']:
-            return redirect(saml_sp.redirect_to(request.form['RelayState'], {'fresh_login': 'true'}))
+            return redirect(saml_sp.redirect_to(request.form['RelayState']))
 
-        return redirect(url_for('main.index', fresh_login=True))
+        return redirect(url_for('main.index'))
 
     error_message = "Errors on SAML ACS:\n{errors}\n\nUser Data: {user_data}".format(errors='\n'.join(errors),
                                                                                      user_data=user_data)

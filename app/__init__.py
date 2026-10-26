@@ -9,11 +9,12 @@ import os
 import redis
 from business_calendar import Calendar, MO, TU, WE, TH, FR
 from celery import Celery
-from flask import (Flask, abort, render_template, request as flask_request)
+from flask import (Flask, abort, redirect, render_template, session as flask_session,
+                   url_for, request as flask_request)
 from flask_bootstrap import Bootstrap
 from flask_elasticsearch import FlaskElasticsearch
 from flask_kvsession import KVSessionExtension
-from flask_login import LoginManager, current_user
+from flask_login import LoginManager, current_user, logout_user
 from flask_mail import Mail
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
@@ -25,6 +26,7 @@ from simplekv.memory.redisstore import RedisStore
 
 from app import celery_config
 from app.constants import OPENRECORDS_DL_EMAIL
+from app.constants.session import SESSION_ENFORCEMENT_EXEMPT_ENDPOINTS
 from app.lib import NYCHolidays, jinja_filters
 from config import Config, config
 
@@ -175,6 +177,31 @@ def create_app(config_name='default'):
         if os.path.exists(os.path.join(app.instance_path, 'maintenance.json')):
             if not flask_request.cookies.get('authorized_maintainer', None):
                 return abort(503)
+
+    @app.before_request
+    def enforce_active_session():
+        """Allow only the session registered against this user to continue.
+
+        Logout and SAML endpoints are exempt so a timeout or forced logout can
+        finish the NYC.ID logout round trip.
+        """
+        if not current_user.is_authenticated:
+            return None
+
+        if flask_request.endpoint in SESSION_ENFORCEMENT_EXEMPT_ENDPOINTS:
+            return None
+
+        from app.auth.utils import register_user_session
+        if flask_session.pop('register_session', False):
+            register_user_session()
+            return None
+
+        if current_user.session_id == flask_session.sid_s:
+            return None
+
+        logout_user()
+        flask_session.destroy()
+        return redirect(url_for('main.index'))
 
     @app.context_processor
     def add_session_config():

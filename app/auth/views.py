@@ -197,6 +197,8 @@ def saml():
     elif "acs" in request.args:
         return saml_acs(onelogin_saml_auth, onelogin_request)
     elif "slo" in request.args:
+        if current_user.is_anonymous:
+            return redirect(url_for("main.index"))
         return redirect(saml_slo(onelogin_saml_auth))
     elif "sls" in request.args:
         user_guid = current_user.guid if not current_user.is_anonymous else None
@@ -260,6 +262,7 @@ def ldap_login():
             if authenticated:
                 login_user(user)
                 session.regenerate()
+                session['register_session'] = True
                 session["user_id"] = current_user.get_id()
 
                 create_auth_event(
@@ -361,6 +364,7 @@ def local_login():
         if user is not None:
             login_user(user)
             session.regenerate()
+            session['register_session'] = True
             session["user_id"] = current_user.get_id()
 
             create_auth_event(
