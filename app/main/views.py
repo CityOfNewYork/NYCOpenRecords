@@ -14,26 +14,15 @@ from flask_login import current_user
 
 from app.constants import OPENRECORDS_DL_EMAIL
 from app.constants.response_privacy import PRIVATE
-from app.lib.db_utils import create_object, update_object
+from app.lib.db_utils import create_object
 from app.lib.email_utils import send_contact_email
-from app.models import Emails, FoilOfficers, Users
+from app.models import Emails, FoilOfficers
 from . import main
 import requests
 
 
 @main.route('/', methods=['GET', 'POST'])
 def index():
-    fresh_login = request.args.get('fresh_login', False)
-    if current_user.is_authenticated and fresh_login:
-        if current_user.session_id is not None:
-            return render_template('main/home.html', duplicate_session=True)
-        update_object(
-            {
-                'session_id': session.sid_s
-            },
-            Users,
-            current_user.guid
-        )
     return render_template('main/home.html')
 
 

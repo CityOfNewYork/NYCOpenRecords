@@ -39,8 +39,8 @@
             ajaxData: '',
             redirUrl: '/auth/logout?timeout=True&forced_logout=True',
             logoutUrl: '/auth/logout',
-            warnAfter: 10 * 60 * 1000, // 10 minutes
-            redirAfter: 15 * 60 * 1000, // 15 minutes
+            warnAfter: 25 * 60 * 1000, // 25 minutes
+            redirAfter:30 * 60 * 1000, // 30 minutes
             keepAliveInterval: 1 * 60 * 1000, // 1 minute
             keepAlive: true,
             ignoreUserActivity: false,
@@ -51,7 +51,7 @@
             countdownBar: true,
             countdownSmart: true
         });
-        {% if duplicate_session %}
+        {% if g.get('duplicate_session') %}
             $("#concurrent-session-modal").modal("show");
         {% endif %}
         {% if current_user.is_public and (current_user.first_name == "" or current_user.last_name == "") %}
