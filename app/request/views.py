@@ -13,15 +13,13 @@ from flask import (
     request as flask_request,
     current_app,
     flash,
-    Markup,
     jsonify,
     abort,
-    escape
 )
 from flask_login import current_user
 from sqlalchemy import any_
 from sqlalchemy.orm.exc import NoResultFound
-from werkzeug.utils import escape as werkzeug_escape
+from markupsafe import Markup, escape
 
 from app.constants import request_status, permission, HIDDEN_AGENCIES
 from app.lib.date_utils import DEFAULT_YEARS_HOLIDAY_LIST, get_holidays_date_list
@@ -78,11 +76,11 @@ def new():
     :return: redirect to homepage on successful form validation
      if form fields are missing or has improper values, backend error messages (WTForms) will appear
     """
-    kiosk_mode = eval_request_bool(werkzeug_escape(flask_request.args.get("kiosk_mode", False)))
-    category = str(werkzeug_escape(flask_request.args.get("category", None)))
-    agency = str(werkzeug_escape(flask_request.args.get("agency", None)))
-    agency_name = str(werkzeug_escape(flask_request.args.get("agency_name", None)))
-    title = str(werkzeug_escape(flask_request.args.get("title", None)))
+    kiosk_mode = eval_request_bool(escape(flask_request.args.get("kiosk_mode", False)))
+    category = str(escape(flask_request.args.get("category", None)))
+    agency = str(escape(flask_request.args.get("agency", None)))
+    agency_name = str(escape(flask_request.args.get("agency_name", None)))
+    title = str(escape(flask_request.args.get("title", None)))
 
     if current_user.is_public:
         form = PublicUserRequestForm()
@@ -185,7 +183,7 @@ def new():
                 category=None,
                 agency_ein=(
                     escape(form.request_agency.data)
-                    if form.request_agency.data != "None"
+                    if form.request_agency.data is not None
                     else current_user.default_agency_ein
                 ),
                 submission=escape(form.method_received.data),
@@ -310,7 +308,7 @@ def view(request_id):
     assigned_users = []
     if current_user.is_agency:
         for agency_user in current_request.agency.active_users:
-            if not agency_user in current_request.agency.administrators and (
+            if agency_user not in current_request.agency_administrators and (
                 agency_user != current_user
             ) and not agency_user.is_agency_read_only(current_request.agency_ein):
                 # populate list of assigned users that can be removed from a request

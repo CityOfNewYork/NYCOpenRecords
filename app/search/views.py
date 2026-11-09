@@ -3,7 +3,8 @@ from datetime import datetime
 from io import StringIO, BytesIO
 import re
 
-from flask import current_app, request, render_template, jsonify, Markup
+from flask import current_app, request, render_template, jsonify
+from markupsafe import Markup
 from flask.helpers import send_file
 from flask_login import current_user
 from sqlalchemy.orm import joinedload
@@ -298,7 +299,7 @@ def requests_doc(doc_type):
         timestamp = utc_to_local(dt, tz_name) if tz_name is not None else dt
         return send_file(
             BytesIO(buffer.getvalue().encode("UTF-8")),  # convert to bytes
-            attachment_filename="FOIL_requests_results_{}.csv".format(
+            download_name="FOIL_requests_results_{}.csv".format(
                 timestamp.strftime("%m_%d_%Y_at_%I_%M_%p")
             ),
             as_attachment=True,

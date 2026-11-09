@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}MFA Setup{% endblock %}
+
+{% block content %}
+    <div role="main">
+        <div class="text-center">
+            <h1>Register MFA Device</h1>
+        </div>
+        <p>
+            Open the authentication app on your device to link it to your OpenRecords account. When the app prompts
+            you, scan the QR code below with your camera. Enter the name of your device in the field and Submit.
+        </p>
+        <div class="text-center">
+            <canvas id="qr"></canvas>
+        </div>
+        <form id="register-mfa" action="{{ url_for('mfa.register') }}" method="POST" role="form">
+            {{ form.csrf_token }}
+            {{ form.device_name.label }} {{ form.device_name }}
+            {{ form.mfa_secret }}
+            <br>
+            <input type="submit" class="btn btn-primary" value="Submit">
+        </form>
+    </div>
+{% endblock %}
+
+{% block custom_script %}
+    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/qrious.min.js') }}"></script>
+    <script>
+        (function () {
+            var qr = new QRious({
+                element: document.getElementById('qr'),
+                size: 200,
+                value: "{{ qr_uri }}"
+            });
+        })();
+    </script>
+{% endblock %}

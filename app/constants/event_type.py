@@ -60,6 +60,8 @@ EXTENSION_LETTER_CREATED = 'extension_letter_created'
 ENVELOPE_CREATED = 'envelope_created'
 RESPONSE_LETTER_CREATED = 'response_letter_created'
 REOPENING_LETTER_CREATED = 'reopening_letter_created'
+MFA_DEVICE_ADDED = 'mfa_device_added'
+MFA_DEVICE_REMOVED = 'mfa_device_removed'
 
 FOR_REQUEST_HISTORY = [
     USER_ADDED,

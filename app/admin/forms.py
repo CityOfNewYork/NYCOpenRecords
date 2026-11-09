@@ -1,5 +1,5 @@
 from flask_login import current_user
-from flask_wtf import Form
+from flask_wtf import FlaskForm
 from wtforms import (
     SelectField,
     StringField,
@@ -15,7 +15,7 @@ from app.lib.db_utils import get_agency_choices
 from app.models import Agencies
 
 
-class ActivateAgencyUserForm(Form):
+class ActivateAgencyUserForm(FlaskForm):
     users = SelectField('Add Agency Users')
 
     def __init__(self, agency_ein):
@@ -25,7 +25,7 @@ class ActivateAgencyUserForm(Form):
             for u in Agencies.query.filter_by(ein=agency_ein).one().inactive_users]
 
 
-class SelectAgencyForm(Form):
+class SelectAgencyForm(FlaskForm):
     agencies = SelectField('Current Agency')
 
     def __init__(self, agency_ein=None):
@@ -72,7 +72,7 @@ class SelectAgencyForm(Form):
 # TODO: Add forms to modify agency_features (see models.py:183)
 
 
-class AddAgencyUserForm(Form):
+class AddAgencyUserForm(FlaskForm):
     agency = SelectField('Agency', choices=None, validators=[DataRequired()])
     first_name = StringField('First Name', validators=[Length(max=32), DataRequired()])
     last_name = StringField('Last Name', validators=[Length(max=64), DataRequired()])

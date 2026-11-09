@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}Verify MFA{% endblock %}
+
+{% block content %}
+    <div role="main">
+        <div class="text-center">
+            <h1>Verify MFA</h1>
+        </div>
+        <p>
+            Choose the device to authenticate with. Check the authentication app on the device and enter the
+            authentication code below to log in to OpenRecords.
+        </p>
+        <form id="verify-mfa" action="{{ url_for('mfa.verify') }}" method="POST" role="form">
+            {{ form.csrf_token }}
+            {{ form.device.label }} {{ form.device }}
+            {{ form.code.label }} {{ form.code }}
+            <br>
+            <input type="submit" class="btn btn-primary" value="Submit">
+        </form>
+    </div>
+{% endblock %}

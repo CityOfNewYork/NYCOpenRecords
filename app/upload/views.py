@@ -38,7 +38,7 @@ from app.upload.constants import (
 from app.upload.utils import (
     parse_content_range,
     is_valid_file_type,
-    scan_and_complete_upload,
+    scan_upload,
     get_upload_key,
     upload_exists,
 )
@@ -71,90 +71,89 @@ def post(request_id):
     }
     """
     files = request.files
-    file_ = files[next(files.keys())]
-    filename = secure_filename(file_.filename)
-    is_update = eval_request_bool(request.form.get('update'))
-    agency_ein = Requests.query.filter_by(id=request_id).one().agency.ein
-    if is_allowed(user=current_user, request_id=request_id, permission=permission.ADD_FILE) or \
-            is_allowed(user=current_user, request_id=request_id, permission=permission.EDIT_FILE):
-        response_id = request.form.get('response_id') if is_update else None
-        if upload_exists(request_id, filename, response_id):
-            response = {
-                "files": [{
-                    "name": filename,
-                    "error": "A file with this name has already "
-                             "been uploaded for this request."
-                    # TODO: "link": <link-to-existing-file> ? would be nice
-                }]
-            }
-        else:
-            upload_path = os.path.join(
-                current_app.config['UPLOAD_QUARANTINE_DIRECTORY'],
-                request_id)
-            if not os.path.exists(upload_path):
-                os.mkdir(upload_path)
-            filepath = os.path.join(upload_path, filename)
-            key = get_upload_key(request_id, filename, is_update)
-
-            try:
-                if CONTENT_RANGE_HEADER in request.headers:
-                    start, size = parse_content_range(
-                        request.headers[CONTENT_RANGE_HEADER])
-
-                    # Only validate mime type on first chunk
-                    valid_file_type = True
-                    file_type = None
-                    if start == 0:
-                        valid_file_type, file_type = is_valid_file_type(file_)
-                        if current_user.is_agency_active(agency_ein):
-                            valid_file_type = True
-                        if os.path.exists(filepath):
-                            # remove existing file (upload 'restarted' for same file)
-                            os.remove(filepath)
-
-                    if valid_file_type:
-                        redis.set(key, upload_status.PROCESSING)
-                        with open(filepath, 'ab') as fp:
-                            fp.seek(start)
-                            fp.write(file_.stream.read())
-                        # scan if last chunk written
-                        if os.path.getsize(filepath) == size:
-                            scan_and_complete_upload.delay(request_id, filepath, is_update, response_id)
-                else:
-                    valid_file_type, file_type = is_valid_file_type(file_)
-                    if current_user.is_agency_active(agency_ein):
-                        valid_file_type = True
-                    if valid_file_type:
-                        redis.set(key, upload_status.PROCESSING)
-                        file_.save(filepath)
-                        scan_and_complete_upload.delay(request_id, filepath, is_update, response_id)
-
-                if not valid_file_type:
-                    response = {
-                        "files": [{
-                            "name": filename,
-                            "error": "The file type '{}' is not allowed.".format(
-                                file_type)
-                        }]
-                    }
-                else:
-                    response = {
-                        "files": [{
-                            "name": filename,
-                            "original_name": file_.filename,
-                            "size": os.path.getsize(filepath),
-                        }]
-                    }
-            except Exception as e:
-                sentry.captureException()
-                redis.set(key, upload_status.ERROR)
-                current_app.logger.exception("Upload for file '{}' failed: {}".format(filename, e))
+    for key, file_ in files.items():
+        filename = secure_filename(file_.filename)
+        is_update = eval_request_bool(request.form.get('update'))
+        agency_ein = Requests.query.filter_by(id=request_id).one().agency.ein
+        if is_allowed(user=current_user, request_id=request_id, permission=permission.ADD_FILE) or \
+                is_allowed(user=current_user, request_id=request_id, permission=permission.EDIT_FILE):
+            response_id = request.form.get('response_id') if is_update else None
+            if upload_exists(request_id, filename, response_id):
                 response = {
                     "files": [{
                         "name": filename,
-                        "error": "There was a problem uploading this file."
+                        "error": "A file with this name has already "
+                                 "been uploaded for this request."
+                        # TODO: "link": <link-to-existing-file> ? would be nice
                     }]
                 }
+            else:
+                upload_path = os.path.join(
+                    current_app.config['UPLOAD_QUARANTINE_DIRECTORY'],
+                    request_id)
+                if not os.path.exists(upload_path):
+                    os.mkdir(upload_path)
+                filepath = os.path.join(upload_path, filename)
+                key = get_upload_key(request_id, filename, is_update)
+
+                try:
+                    if CONTENT_RANGE_HEADER in request.headers:
+                        start, size = parse_content_range(
+                            request.headers[CONTENT_RANGE_HEADER])
+
+                        # Only validate mime type on first chunk
+                        valid_file_type = True
+                        file_type = None
+                        if start == 0:
+                            valid_file_type, file_type = is_valid_file_type(file_)
+                            if current_user.is_agency_active(agency_ein):
+                                valid_file_type = True
+                            if os.path.exists(filepath):
+                                # remove existing file (upload 'restarted' for same file)
+                                os.remove(filepath)
+
+                        if valid_file_type:
+                            redis.set(key, upload_status.PROCESSING)
+                            with open(filepath, 'ab') as fp:
+                                fp.seek(start)
+                                fp.write(file_.stream.read())
+                            # scan if last chunk written
+                            if os.path.getsize(filepath) == size:
+                                scan_upload.delay(request_id, filepath, is_update, response_id)
+                    else:
+                        valid_file_type, file_type = is_valid_file_type(file_)
+                        if current_user.is_agency_active(agency_ein):
+                            valid_file_type = True
+                        if valid_file_type:
+                            redis.set(key, upload_status.PROCESSING)
+                            file_.save(filepath)
+                            scan_upload.delay(request_id, filepath, is_update, response_id)
+                    if not valid_file_type:
+                        response = {
+                            "files": [{
+                                "name": filename,
+                                "error": "The file type '{}' is not allowed.".format(
+                                    file_type)
+                            }]
+                        }
+                    else:
+                        response = {
+                            "files": [{
+                                "name": filename,
+                                "original_name": file_.filename,
+                                "size": os.path.getsize(filepath),
+                            }]
+                        }
+                except Exception as e:
+                    sentry.captureException()
+                    redis.set(key, upload_status.ERROR)
+                    current_app.logger.exception("Upload for file '{}' failed: {}".format(filename, e))
+                    response = {
+                        "files": [{
+                            "name": filename,
+                            "error": "There was a problem uploading this file."
+                        }]
+                    }
 
         return jsonify(response), 200
 
@@ -233,8 +232,13 @@ def delete(r_id_type, r_id, filecode):
                         os.remove(filepath)
                         found = True
                 else:
-                    if fu.exists(filepath):
+                    # Check storage solution and delete file accordingly
+                    if (current_app.config['USE_VOLUME_STORAGE'] or current_app.config['USE_SFTP'])\
+                            and fu.exists(filepath):
                         fu.remove(filepath)
+                        found = True
+                    elif current_app.config['USE_AZURE_STORAGE'] and fu.azure_exists(filepath):
+                        fu.azure_delete(filepath)
                         found = True
             if found:
                 response = {"deleted": filename}

@@ -1,6 +1,6 @@
 from datetime import timedelta, datetime
 
-import os
+import os, redis
 from dotenv import load_dotenv
 
 from app.constants import OPENRECORDS_DL_EMAIL
@@ -9,6 +9,7 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 
 dotenv_path = os.path.join(basedir, '.env')
 load_dotenv(dotenv_path)
+
 
 class Config:
     NYC_GOV_BASE = 'www1.nyc.gov'
@@ -58,14 +59,19 @@ class Config:
     SFTP_UPLOAD_DIRECTORY = os.environ.get('SFTP_UPLOAD_DIRECTORY')
 
     # Authentication Settings
-    PERMANENT_SESSION_LIFETIME = timedelta(minutes=int(os.environ.get('PERMANENT_SESSION_LIFETIME', 30)))
+    PERMANENT_SESSION_LIFETIME = timedelta(minutes=int(os.environ.get('PERMANENT_SESSION_LIFETIME', 20)))
+    SESSION_TYPE = os.environ.get('SESSION_TYPE', 'redis')
     USE_SAML = os.environ.get('USE_SAML') == "True"
+    MFA_ENCRYPT_FILE = os.environ.get('MFA_ENCRYPT_FILE')
+    USE_MFA = os.environ.get('USE_MFA') == "True"
 
     AUTH_TYPE = 'None'
 
     if USE_SAML:
-        SAML_PATH = (os.environ.get('SAML_PATH') or
-                     os.path.join(os.path.abspath(os.path.dirname(__file__)), 'saml'))
+        SAML_PATH_NYCID = os.environ.get('SAML_PATH_NYCID')
+        SAML_PATH_ENTRAID = os.environ.get('SAML_PATH_ENTRAID')
+        # SAML_PATH = (os.environ.get('SAML_PATH') or
+        #              os.path.join(os.path.abspath(os.path.dirname(__file__)), 'saml'))
         WEB_SERVICES_URL = os.environ.get('SAML_WEB_SERVICES_URL')
         VERIFY_WEB_SERVICES = os.environ.get('SAML_VERIFY_WEB_SERVICES') == "True"
         NYC_ID_USERNAME = os.environ.get('SAML_NYC_ID_USERNAME')
@@ -94,6 +100,10 @@ class Config:
     SESSION_REDIS_DB = 1
     UPLOAD_REDIS_DB = 2
     EMAIL_REDIS_DB = 3
+
+    SESSION_REDIS = redis.StrictRedis(db=SESSION_REDIS_DB,
+                                      host=REDIS_HOST,
+                                      port=REDIS_PORT)
 
     # Celery Settings
     CELERY_BROKER_URL = 'redis://{redis_host}:{redis_port}/{celery_redis_db}'.format(
@@ -163,10 +173,18 @@ class Config:
                                else None)
     ELASTICSEARCH_CHUNK_SIZE = int(os.environ.get('ELASTICSEARCH_CHUNK_SIZE', 100))
 
-    # https://www.elastic.co/blog/index-vs-type
+    # https://www.elastic.co/blog/index-vs-typea/
 
     SENTRY_DSN = os.environ.get('SENTRY_DSN')
     USE_SENTRY = os.environ.get('USE_SENTRY') == "True"
+
+    # Azure Settings
+    USE_VOLUME_STORAGE = os.environ.get('USE_VOLUME_STORAGE') == "True"
+    USE_AZURE_STORAGE = os.environ.get('USE_AZURE_STORAGE') == "True"
+    AZURE_STORAGE_CONNECTION_STRING = os.environ.get('AZURE_STORAGE_CONNECTION_STRING')
+    AZURE_STORAGE_CONTAINER = os.environ.get('AZURE_STORAGE_CONTAINER')
+    AZURE_STORAGE_ACCOUNT_NAME = os.environ.get('AZURE_STORAGE_ACCOUNT_NAME')
+    AZURE_STORAGE_ACCOUNT_KEY = os.environ.get('AZURE_STORAGE_ACCOUNT_KEY')
 
     @staticmethod
     def init_app(app):

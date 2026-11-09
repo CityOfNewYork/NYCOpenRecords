@@ -230,7 +230,7 @@ def open_data_report():
         date_to_string = date_to.strftime('%Y%m%d')
         return send_file(
             BytesIO(open_data_report_spreadsheet),
-            attachment_filename='open_data_compliance_report_{}_{}.xls'.format(date_from_string, date_to_string),
+            download_name='open_data_compliance_report_{}_{}.xls'.format(date_from_string, date_to_string),
             as_attachment=True
         )
     else:

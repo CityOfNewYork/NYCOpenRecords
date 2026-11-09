@@ -6,4 +6,5 @@ SESSION_ENFORCEMENT_EXEMPT_ENDPOINTS = frozenset((
     'static',
     'auth.logout',
     'auth.saml',
+    'auth.azure',
 ))
