@@ -175,9 +175,6 @@ class Config:
 
     # https://www.elastic.co/blog/index-vs-typea/
 
-    SENTRY_DSN = os.environ.get('SENTRY_DSN')
-    USE_SENTRY = os.environ.get('USE_SENTRY') == "True"
-
     # Azure Settings
     USE_VOLUME_STORAGE = os.environ.get('USE_VOLUME_STORAGE') == "True"
     USE_AZURE_STORAGE = os.environ.get('USE_AZURE_STORAGE') == "True"

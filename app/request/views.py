@@ -57,7 +57,6 @@ from app.user_request.forms import (
     RemoveUserRequestForm,
 )
 from app.user_request.utils import get_current_point_of_contact
-from app import sentry
 import json
 import requests
 
@@ -290,11 +289,9 @@ def view(request_id):
         assert current_request.agency.is_active or current_request.status is request_status.CLOSED
     except NoResultFound:
         print("Request with id '{}' does not exist.".format(request_id))
-        sentry.captureException()
         return abort(404)
     except AssertionError:
         print("Request belongs to inactive agency.")
-        sentry.captureException()
         return abort(404)
 
     holidays = sorted(

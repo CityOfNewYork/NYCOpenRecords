@@ -24,7 +24,7 @@ from flask import (
 )
 from flask_login import current_user, login_url
 
-from app import login_manager, sentry
+from app import login_manager
 from app.constants import permission, request_date
 from app.constants.pdf import EnvelopeDict
 from app.constants.response_type import FILE, LETTER, EMAIL
@@ -111,7 +111,7 @@ def response_note(request_id):
         privacy = RELEASE_AND_PRIVATE
         is_requester = True
 
-    # TODO: Get copy from business, insert sentry issue key in message
+    # TODO: Get copy from business
     # Error handling to check if retrieved elements exist. Flash error message if elements does not exist.
     for field in required_fields:
         if not note_data.get(field, ''):
@@ -276,7 +276,6 @@ def response_closing(request_id):
                     flask_request.form['method'],
                     flask_request.form.get('letter_templates'))
     except UserRequestException as e:
-        sentry.captureException()
         flash(str(e), category='danger')
     return redirect(url_for('request.view', request_id=request_id))
 
@@ -312,7 +311,6 @@ def response_quick_closing(request_id):
                           current_app.config['APP_TIMEZONE'],
                           content=flask_request.form['summary'])
     except UserRequestException as e:
-        sentry.captureException()
         flash(str(e), category='danger')
     return redirect(url_for('request.view', request_id=request_id))
 
@@ -389,7 +387,7 @@ def response_extension(request_id):
                            'summary',
                            'method']
 
-    # TODO: Get copy from business, insert sentry issue key in message
+    # TODO: Get copy from business
     # Error handling to check if retrieved elements exist. Flash error message if elements does not exist.
     for field in required_fields:
         if not extension_data.get(field, ''):
@@ -430,7 +428,7 @@ def response_link(request_id):
                        'privacy',
                        'link-is-dataset']
 
-    # TODO: Get copy from business, insert sentry issue key in message
+    # TODO: Get copy from business
     # Error handling to check if retrieved elements exist. Flash error message if elements does not exist.
     for field in required_fields:
         if not link_data.get(field, ''):
@@ -468,7 +466,7 @@ def response_instructions(request_id):
                        'email-instruction-summary',
                        'privacy']
 
-    # TODO: Get copy from business, insert sentry issue key in message
+    # TODO: Get copy from business
     # Error handling to check if retrieved elements exist. Flash error message if elements does not exist.
     for field in required_fields:
         if not instruction_data.get(field, ''):

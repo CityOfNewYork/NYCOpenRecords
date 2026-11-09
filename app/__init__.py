@@ -16,10 +16,8 @@ from flask_login import LoginManager, current_user, logout_user
 from flask_mail import Mail
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
-from flask_tracy import Tracy
 from flask_wtf.csrf import CSRFProtect
 from flask_session import Session
-from raven.contrib.flask import Sentry
 
 from app import celery_config
 from app.constants import OPENRECORDS_DL_EMAIL
@@ -34,13 +32,11 @@ db = SQLAlchemy()
 csrf = CSRFProtect()
 moment = Moment()
 mail = Mail()
-tracy = Tracy()
 login_manager = LoginManager()
 store = redis.StrictRedis(db=Config.SESSION_REDIS_DB,
                           host=Config.REDIS_HOST,
                           port=Config.REDIS_PORT)
 celery = Celery(__name__, broker=Config.CELERY_BROKER_URL)
-sentry = Sentry()
 sess = Session()
 
 upload_redis = redis.StrictRedis(
@@ -111,7 +107,6 @@ def create_app(config_name='default'):
     mail.init_app(app)
     celery.conf.update(app.config)
     celery.config_from_object(celery_config)
-    sentry.init_app(app, logging=app.config["USE_SENTRY"], level=logging.INFO)
     sess.init_app(app)
     app.elasticsearch = Elasticsearch(Config.ELASTICSEARCH_HOST)
 

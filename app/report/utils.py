@@ -140,18 +140,18 @@ def generate_acknowledgment_report(self, current_user_guid: str, date_from: date
 
     if cli_ein:
         # Export to application server if an ein was provided from the cli command
-        with open('{}_FOIL_acknowledgments_{}_{}.xls'.format(agency_ein, date_from_string, date_to_string),
+        with open('{}_FOIL_acknowledgments_{}_{}.xlsx'.format(agency_ein, date_from_string, date_to_string),
                   'wb') as f:
-            f.write(excel_spreadsheet.export('xls'))
+            f.write(excel_spreadsheet.export('xlsx'))
             f.close()
     else:
         send_email(subject='OpenRecords Acknowledgment Report',
                    to=[current_user.email],
                    template='email_templates/email_agency_report_generated',
                    agency_user=current_user.name,
-                   attachment=excel_spreadsheet.export('xls'),
-                   filename='{}_FOIL_acknowledgments_{}_{}.xls'.format(agency_ein, date_from_string, date_to_string),
-                   mimetype='application/octect-stream')
+                   attachment=excel_spreadsheet.export('xlsx'),
+                   filename='{}_FOIL_acknowledgments_{}_{}.xlsx'.format(agency_ein, date_from_string, date_to_string),
+                   mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 
 
 def generate_request_closing_user_report(agency_ein: str, date_from: str, date_to: str):
@@ -322,9 +322,9 @@ def generate_request_closing_user_report(agency_ein: str, date_from: str, date_t
                                          person_month_dataset))
 
     # Export to application server
-    with open('{}_FOIL_user_closing_{}_{}.xls'.format(agency_ein, date_from, date_to),
+    with open('{}_FOIL_user_closing_{}_{}.xlsx'.format(agency_ein, date_from, date_to),
               'wb') as f:
-        f.write(excel_spreadsheet.export('xls'))
+        f.write(excel_spreadsheet.export('xlsx'))
         f.close()
 
 
@@ -509,18 +509,18 @@ def generate_monthly_metrics_report(self, agency_ein: str, date_from: str, date_
 
     if cli:
         # Export to application server
-        with open('{}_FOIL_monthly_metrics_report_{}_{}.xls'.format(agency_ein, date_from, date_to),
+        with open('{}_FOIL_monthly_metrics_report_{}_{}.xlsx'.format(agency_ein, date_from, date_to),
                   'wb') as f:
-            f.write(excel_spreadsheet.export('xls'))
+            f.write(excel_spreadsheet.export('xlsx'))
             f.close()
     else:
         # Email report
         send_email(subject='OpenRecords Monthly Metrics Report',
                    to=email_to,
                    email_content='Report attached',
-                   attachment=excel_spreadsheet.export('xls'),
-                   filename='{}_FOIL_monthly_metrics_report_{}_{}.xls'.format(agency_ein, date_from, date_to),
-                   mimetype='application/octet-stream')
+                   attachment=excel_spreadsheet.export('xlsx'),
+                   filename='{}_FOIL_monthly_metrics_report_{}_{}.xlsx'.format(agency_ein, date_from, date_to),
+                   mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 
 
 def generate_open_data_report(agency_ein: str, date_from: datetime, date_to: datetime):
@@ -780,5 +780,4 @@ def generate_open_data_report(agency_ein: str, date_from: datetime, date_to: dat
         all_requests_sheet,
     ))
 
-    # TODO: Update Excel spreadsheet format to xlsx
-    return excel_spreadsheet.export('xls')
+    return excel_spreadsheet.export('xlsx')

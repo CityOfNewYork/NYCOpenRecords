@@ -1,0 +1,58 @@
+# Direct dependencies of OpenRecords. Lock with:
+#   uv pip compile requirements/requirements.in -o requirements/requirements.txt \
+#     --python-version 3.14 --python-platform x86_64-unknown-linux-gnu --generate-hashes --upgrade
+# Only list packages the code imports; let the resolver pick everything else.
+
+# Web framework
+flask
+werkzeug
+jinja2
+markupsafe
+click
+flask-bootstrap
+flask-login
+flask-mail
+flask-migrate
+flask-moment
+flask-session
+flask-wtf
+wtforms[email]          # Email() validator needs email-validator
+
+# Database
+sqlalchemy>=2.0,<2.1    # Flask-SQLAlchemy 3.1.1 is untested on 2.1
+flask-sqlalchemy
+alembic
+psycopg2                # built from source; psycopg2-binary is not for production
+
+# Background jobs / cache
+celery[redis]
+redis
+
+# Search: client major version must match the server; code still uses 7.x APIs (doc_type)
+elasticsearch>=7.17,<8
+
+# Auth (NYC.ID / Entra ID SAML, LDAP, MFA)
+python3-saml
+lxml[html-clean]        # app/response/utils.py uses lxml.html.clean (split out in lxml 6)
+ldap3
+pyotp
+cryptography
+
+# Files, storage, documents
+azure-storage-blob
+paramiko                # SFTP storage option
+python-magic
+flask-weasyprint
+tablib[xlsx]            # report exports
+
+# Utilities
+business-calendar
+holidays
+jsonschema
+python-dateutil
+python-dotenv
+pytz
+requests
+
+# WSGI server
+gunicorn

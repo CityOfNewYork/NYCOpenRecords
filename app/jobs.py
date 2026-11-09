@@ -7,7 +7,7 @@ from flask import (current_app, render_template)
 from psycopg2 import OperationalError
 from sqlalchemy.exc import SQLAlchemyError
 
-from app import calendar, sentry, db, store
+from app import calendar, db, store
 from app.constants import OPENRECORDS_DL_EMAIL, request_status, determination_type
 from app.constants.event_type import EMAIL_NOTIFICATION_SENT, REQ_STATUS_CHANGED
 from app.constants.response_privacy import PRIVATE

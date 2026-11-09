@@ -22,7 +22,7 @@ The following libraries are needed:
 Authentication 
 - OpenRecords currently implements LDAP and OAuth for authentication. For development, you can bypass authentication by setting both `'USE_OAUTH'` and `'USE_LDAP'` to `False`.
     
-We have optional integrations with [Sentry](https://sentry.io) for error tracing and are working on an integration with the ELK stack for log aggregation and analytics.
+We are working on an integration with the ELK stack for log aggregation and analytics.
 
 ### Pre-Requisites
 - Vagrant (v2.1.4) - Newer version may work but have not been tested.

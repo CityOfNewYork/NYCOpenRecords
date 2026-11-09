@@ -3,7 +3,7 @@ from functools import wraps
 from flask import abort, request, redirect
 from flask_login import current_user, login_url
 from sqlalchemy.orm.exc import NoResultFound
-from app import login_manager, sentry
+from app import login_manager
 from app.constants import permission
 from app.models import (
     Users,
@@ -74,11 +74,9 @@ def is_allowed(user: Users, request_id: str, permission: int):
         return True if user_request.has_permission(permission) else False
 
     except NoResultFound:
-        sentry.captureException()
         return False
 
     except AttributeError:
-        sentry.captureException()
         return False
 
 

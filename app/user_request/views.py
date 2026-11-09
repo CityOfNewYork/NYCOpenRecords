@@ -16,7 +16,6 @@ from flask import (
 from app.lib.utils import UserRequestException
 from app.constants import permission, role_name
 from flask_login import current_user
-from app import sentry
 
 
 @user_request.route('/<request_id>', methods=['POST'])
@@ -59,7 +58,6 @@ def create(request_id):
             add_user_request(request_id=request_id, user_guid=user_data.get('user'),
                              permissions=permissions, point_of_contact=point_of_contact)
         except UserRequestException as e:
-            sentry.captureException()
             flash(str(e), category='warning')
             return redirect(url_for('request.view', request_id=request_id))
         return redirect(url_for('request.view', request_id=request_id))
@@ -106,7 +104,6 @@ def edit(request_id):
             edit_user_request(request_id=request_id, user_guid=user_data.get('user'),
                               permissions=permissions, point_of_contact=point_of_contact)
         except UserRequestException as e:
-            sentry.captureException()
             flash(e, category='warning')
             return redirect(url_for('request.view', request_id=request_id))
         return 'OK', 200
@@ -141,7 +138,7 @@ def delete(request_id):
         required_fields = ['user',
                            'remove-confirm-string']
 
-        # TODO: Get copy from business, insert sentry issue key in message
+        # TODO: Get copy from business
         # Error handling to check if retrieved elements exist. Flash error message if elements does not exist.
         for field in required_fields:
             if user_data.get(field) is None:

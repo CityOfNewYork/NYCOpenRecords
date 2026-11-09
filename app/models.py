@@ -18,7 +18,7 @@ from sqlalchemy.orm import column_property
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 from warnings import warn
 
-from app import db, es, calendar, sentry
+from app import db, es, calendar
 from app.constants import (
     ES_DATETIME_FORMAT,
     permission,
@@ -1663,10 +1663,8 @@ class Files(Responses):
                 if not file.deleted:
                     raise DuplicateFileException(file_name=name, request_id=request_id)
         except DuplicateFileException:
-            sentry.captureException()
             raise DuplicateFileException(file_name=name, request_id=request_id)
         except MultipleResultsFound:
-            sentry.captureException()
             raise DuplicateFileException(file_name=name, request_id=request_id)
 
         super(Files, self).__init__(request_id, privacy, date_modified, release_date, is_editable, is_dataset, dataset_description)

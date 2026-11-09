@@ -20,7 +20,7 @@ from hashlib import sha256
 from ldap3 import Connection, Server, Tls
 from requests.exceptions import SSLError
 
-from app import (login_manager, sentry, store)
+from app import (login_manager, store)
 from app.auth.constants import error_msg
 from app.constants import event_type
 from app.constants.bulk_updates import EventsDict
@@ -680,7 +680,6 @@ def _web_services_request(endpoint, params, method='GET'):
                 params=params  # query string parameters always used
             )
         except SSLError:
-            sentry.captureException()
             continue
         break
     return req
@@ -724,7 +723,6 @@ def _generate_signature(password, string):
                                digestmod=sha256)
         signature = hmac_sha256.hexdigest()
     except Exception as e:
-        sentry.captureException()
         current_app.logger.error("Failed to generate NYC ID.Web Services "
                                  "authentication signature: ", e)
     return signature

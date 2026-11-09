@@ -23,7 +23,7 @@ from flask_login import current_user
 from werkzeug.utils import secure_filename
 
 import app.lib.file_utils as fu
-from app import upload_redis, sentry
+from app import upload_redis
 from app.constants import (
     event_type,
     role_name as role,
@@ -322,7 +322,6 @@ def handle_upload_no_id(file_field):
         try:
             path = _quarantine_upload_no_id(file_field.data)
         except Exception as e:
-            sentry.captureException()
             print("Error saving file {} : {}".format(
                 file_field.data.filename, e))
             file_field.errors.append('Error saving file.')
@@ -330,10 +329,8 @@ def handle_upload_no_id(file_field):
             try:
                 scan_file(path)
             except VirusDetectedException:
-                sentry.captureException()
                 file_field.errors.append('File is infected.')
             except Exception:
-                sentry.captureException()
                 file_field.errors.append('Error scanning file.')
     return path
 
@@ -519,10 +516,8 @@ def send_confirmation_email(request, agency, user):
                 to=[agency.default_email],
             )
     except AssertionError:
-        sentry.captureException()
         print('Must include: To, CC, or BCC')
     except Exception as e:
-        sentry.captureException()
         print("Error:", e)
 
 

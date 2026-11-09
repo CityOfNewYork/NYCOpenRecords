@@ -18,7 +18,7 @@ from flask_login import (
 )
 from werkzeug.utils import secure_filename
 
-from app import upload_redis as redis, sentry
+from app import upload_redis as redis
 from app.constants import permission
 from app.lib.utils import (
     b64decode_lenient,
@@ -145,7 +145,6 @@ def post(request_id):
                             }]
                         }
                 except Exception as e:
-                    sentry.captureException()
                     redis.set(key, upload_status.ERROR)
                     current_app.logger.exception("Upload for file '{}' failed: {}".format(filename, e))
                     response = {
@@ -245,7 +244,6 @@ def delete(r_id_type, r_id, filecode):
             else:
                 response = {"error": "Upload not found."}
         except Exception as e:
-            sentry.captureException()
             current_app.logger.exception("Error on DELETE /upload/: {}".format(e))
             response = {"error": "Failed to delete '{}'".format(filename)}
 
@@ -280,7 +278,6 @@ def status():
             response = {"error": "Upload status not found."}
         status_code = 200
     except KeyError:
-        sentry.captureException()
         response = {}
         status_code = 422
 

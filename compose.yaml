@@ -25,9 +25,11 @@ services:
   celery:
     build:
       context: .
-      target: celery
+      target: production
     command: celery -A app worker -l INFO
     environment:
+      # The production stage sets FLASK_CONFIG=production; match the development web app locally
+      - FLASK_CONFIG=development
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PORT=${REDIS_PORT}
       - APP_LAUNCH_DATE=${APP_LAUNCH_DATE}
