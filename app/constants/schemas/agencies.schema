@@ -20,7 +20,7 @@
           "$id": "/properties/agencies/items/properties/agency_features/properties/use_point_of_contact",
           "type": "boolean",
           "title": "Use Point of Contact",
-          "description": "Boolean value that determines if point of contact information should be used in email templates.",
+          "description": "Boolean value that determines if point of contact information should be used in email templates."
         },
         "letters": {
           "generate_letters": {
