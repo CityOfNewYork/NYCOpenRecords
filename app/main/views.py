@@ -6,11 +6,9 @@
 from flask import (
     current_app,
     flash,
-    redirect,
     render_template,
     request,
     session,
-    url_for,
 )
 from flask_login import current_user
 
@@ -25,12 +23,6 @@ import requests
 
 @main.route('/', methods=['GET', 'POST'])
 def index():
-    verify_mfa = request.args.get('verify_mfa', False)
-    if current_user.is_authenticated and verify_mfa and current_app.config['USE_MFA']:
-        if current_user.has_mfa:
-            return redirect(url_for('mfa.verify'))
-        else:
-            return redirect(url_for('mfa.register'))
     return render_template('main/home.html')
 
 

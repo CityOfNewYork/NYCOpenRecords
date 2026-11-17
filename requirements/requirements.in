@@ -31,12 +31,10 @@ redis
 # Search: client major version must match the server; code still uses 7.x APIs (doc_type)
 elasticsearch>=7.17,<8
 
-# Auth (NYC.ID / Entra ID SAML, LDAP, MFA)
+# Auth (NYC.ID / Entra ID SAML, LDAP)
 python3-saml
 lxml[html-clean]        # app/response/utils.py uses lxml.html.clean (split out in lxml 6)
 ldap3
-pyotp
-cryptography
 
 # Files, storage, documents
 azure-storage-blob
