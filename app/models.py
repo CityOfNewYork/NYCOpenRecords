@@ -3,7 +3,7 @@ Models for OpenRecords database
 """
 import csv
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from urllib.parse import urljoin
 from uuid import uuid4
 
@@ -15,10 +15,10 @@ from operator import ior
 from sqlalchemy import desc
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.orm import column_property
-from sqlalchemy.orm.exc import MultipleResultsFound
+from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 from warnings import warn
 
-from app import db, es, calendar, sentry
+from app import db, es, calendar
 from app.constants import (
     ES_DATETIME_FORMAT,
     permission,
@@ -373,7 +373,6 @@ class Users(UserMixin, db.Model):
         lazy="dynamic",
     )
     agency_users = db.relationship("AgencyUsers", backref="user", lazy="dynamic")
-    mfa = db.relationship("MFA", backref="user", lazy="dynamic")
 
     @property
     def is_authenticated(self):
@@ -574,18 +573,6 @@ class Users(UserMixin, db.Model):
 
     def get_id(self):
         return self.guid
-
-    @property
-    def has_mfa(self):
-        """
-        Determine if a user has MFA set up.
-        :return: Boolean
-        """
-        mfa = MFA.query.filter_by(user_guid=self.guid,
-                                  is_valid=True).first()
-        if mfa is not None:
-            return True
-        return False
 
     def es_update(self):
         """
@@ -980,6 +967,14 @@ class Requests(db.Model):
             and self.agency_request_summary_release_date < datetime.utcnow()
         )
 
+    @property
+    def requester_name(self):
+        try:
+            request_doc = es.get(index=current_app.config["ELASTICSEARCH_INDEX"], doc_type="request", id=self.id)
+            return request_doc['_source']['requester_name']
+        except Exception as e:
+            print(e)
+
     def es_update(self):
         if current_app.config["ELASTICSEARCH_ENABLED"]:
             if self.agency.is_active:
@@ -995,6 +990,7 @@ class Requests(db.Model):
                                 user.get_id() for user in self.agency_users
                             ],
                             "title_private": self.privacy["title"],
+                            "agency_ein": self.agency_ein,
                             "agency_request_summary_private": not self.agency_request_summary_released,
                             "date_due": self.due_date.strftime(ES_DATETIME_FORMAT),
                             "date_closed": self.date_closed.strftime(ES_DATETIME_FORMAT)
@@ -1010,6 +1006,7 @@ class Requests(db.Model):
                             "public_title": "Private"
                             if self.privacy["title"]
                             else self.title,
+                            "request_type": [metadata["form_name"] for metadata in self.custom_metadata.values()],
                             "agency_name": self.agency.name,
                             "agency_acronym": self.agency.acronym
                         }
@@ -1081,7 +1078,7 @@ class Events(db.Model):
 
     __tablename__ = "events"
     id = db.Column(db.Integer, primary_key=True)
-    request_id = db.Column(db.String(19), db.ForeignKey("requests.id"))
+    request_id = db.Column(db.String(19), db.ForeignKey("requests.id"), index=True)
     user_guid = db.Column(db.String(64))
     response_id = db.Column(db.Integer, db.ForeignKey("responses.id"))
     type = db.Column(db.String(64))
@@ -1123,7 +1120,11 @@ class Events(db.Model):
     @property
     def affected_user(self):
         if self.new_value is not None and "user_guid" in self.new_value:
-            return Users.query.filter_by(guid=self.new_value["user_guid"]).one()
+            try:
+                return Users.query.filter_by(guid=self.new_value["user_guid"]).one().name
+            except NoResultFound:
+                # Fallback to name in new_value if provided
+                return self.new_value.get("name", None)
 
     class RowContent(object):
         def __init__(
@@ -1145,7 +1146,9 @@ class Events(db.Model):
         def __str__(self):
             format_args = [self.verb]
             if self.affected_user is not None:
-                format_args += [self.affected_user.name]
+                format_args += [self.affected_user]
+            else:
+                format_args += ["NULL"]
             if self.no_user_string is not None and self.event.user is None:
                 string = self.no_user_string
             else:
@@ -1187,7 +1190,7 @@ class Events(db.Model):
                 self,
                 "created",
                 "{} this request on behalf of {}.",
-                self.request.requester,
+                self.request.requester.name if self.request.requester else None,
             ),
             event_type.REQ_ACKNOWLEDGED: self.RowContent(
                 self, "acknowledged", "{} this request."
@@ -1307,12 +1310,12 @@ class Responses(db.Model):
 
     # TODO: overwrite filter to automatically check if deleted=False
 
-    def __init__(self, request_id, privacy, date_modified=None, is_editable=False, is_dataset=False, dataset_description=None):
+    def __init__(self, request_id, privacy, date_modified=None, release_date=None, is_editable=False, is_dataset=False, dataset_description=None):
         self.request_id = request_id
         self.privacy = privacy
         self.date_modified = date_modified or datetime.utcnow()
-        self.release_date = (
-            calendar.addbusdays(datetime.utcnow(), RELEASE_PUBLIC_DAYS)
+        self.release_date = release_date or (
+            datetime.utcnow() + timedelta(days=RELEASE_PUBLIC_DAYS)
             if privacy == response_privacy.RELEASE_AND_PUBLIC
             else None
         )
@@ -1372,6 +1375,23 @@ class Responses(db.Model):
         )
 
     @property
+    def is_determination_letter(self):
+        """
+        Determine if a response is a determination letter or not.
+
+        Letters created as part of a Determination will appear in the CommunicationMethod table
+        response_id will be the Determination response and method_id will be the corresponding Letter response.
+
+        Letters created using the Generate Letter action will not appear in the CommunicationMethod table.
+        """
+        method_id = CommunicationMethods.query.filter_by(
+            method_id=self.id
+        ).one_or_none()
+        if method_id is None:
+            return False
+        return True
+
+    @property
     def event_timestamp(self):
         """
         This function runs a query on the Events table to get all associated event rows for a response and returns
@@ -1389,7 +1409,7 @@ class Responses(db.Model):
 
     def make_public(self):
         self.privacy = response_privacy.RELEASE_AND_PUBLIC
-        self.release_date = calendar.addbusdays(datetime.utcnow(), RELEASE_PUBLIC_DAYS)
+        self.release_date = datetime.utcnow() + timedelta(days=RELEASE_PUBLIC_DAYS)
         db.session.commit()
 
     def __repr__(self):
@@ -1491,11 +1511,13 @@ class UserRequests(db.Model):
         """
         JSON to store in Events 'new_value' field.
         """
+        user = Users.query.filter_by(guid=self.user_guid).one_or_none()
         return {
             "user_guid": self.user_guid,
             "request_user_type": self.request_user_type,
             "permissions": self.permissions,
             "point_of_contact": self.point_of_contact,
+            "name": user.name
         }
 
     def has_permission(self, perm):
@@ -1576,9 +1598,9 @@ class Notes(Responses):
     content = db.Column(db.String)
 
     def __init__(
-        self, request_id, privacy, content, date_modified=None, is_editable=False
+        self, request_id, privacy, content, date_modified=None, release_date=None, is_editable=False
     ):
-        super(Notes, self).__init__(request_id, privacy, date_modified, is_editable)
+        super(Notes, self).__init__(request_id, privacy, date_modified, release_date, is_editable)
         self.content = content
 
     @property
@@ -1617,6 +1639,7 @@ class Files(Responses):
         size,
         hash_,
         date_modified=None,
+        release_date=None,
         is_editable=False,
         is_dataset=False,
         dataset_description=None
@@ -1627,13 +1650,11 @@ class Files(Responses):
                 if not file.deleted:
                     raise DuplicateFileException(file_name=name, request_id=request_id)
         except DuplicateFileException:
-            sentry.captureException()
             raise DuplicateFileException(file_name=name, request_id=request_id)
         except MultipleResultsFound:
-            sentry.captureException()
             raise DuplicateFileException(file_name=name, request_id=request_id)
 
-        super(Files, self).__init__(request_id, privacy, date_modified, is_editable, is_dataset, dataset_description)
+        super(Files, self).__init__(request_id, privacy, date_modified, release_date, is_editable, is_dataset, dataset_description)
         self.name = name
         self.mime_type = mime_type
         self.title = title
@@ -1661,9 +1682,9 @@ class Links(Responses):
     url = db.Column(db.String)
 
     def __init__(
-        self, request_id, privacy, title, url, date_modified=None, is_editable=False, is_dataset=False, dataset_description=None
+        self, request_id, privacy, title, url, date_modified=None, release_date=None, is_editable=False, is_dataset=False, dataset_description=None
     ):
-        super(Links, self).__init__(request_id, privacy, date_modified, is_editable, is_dataset, dataset_description)
+        super(Links, self).__init__(request_id, privacy, date_modified, release_date, is_editable, is_dataset, dataset_description)
         self.title = title
         self.url = url
 
@@ -1686,10 +1707,10 @@ class Instructions(Responses):
     content = db.Column(db.String)
 
     def __init__(
-        self, request_id, privacy, content, date_modified=None, is_editable=False
+        self, request_id, privacy, content, date_modified=None, release_date=None, is_editable=False
     ):
         super(Instructions, self).__init__(
-            request_id, privacy, date_modified, is_editable
+            request_id, privacy, date_modified, release_date, is_editable
         )
         self.content = content
 
@@ -1729,9 +1750,10 @@ class Emails(Responses):
         subject,
         body,
         date_modified=None,
+        release_date=None,
         is_editable=False,
     ):
-        super(Emails, self).__init__(request_id, privacy, date_modified, is_editable)
+        super(Emails, self).__init__(request_id, privacy, date_modified, release_date, is_editable)
         self.to = to
         self.cc = cc
         self.bcc = bcc
@@ -1761,9 +1783,9 @@ class Envelopes(Responses):
     latex = db.Column(db.String)
 
     def __init__(
-        self, request_id, privacy, latex, date_modified=None, is_editable=False
+        self, request_id, privacy, latex, date_modified=None, release_date=None, is_editable=False
     ):
-        super(Envelopes, self).__init__(request_id, privacy, date_modified, is_editable)
+        super(Envelopes, self).__init__(request_id, privacy, date_modified, release_date, is_editable)
         self.latex = latex
 
     @property
@@ -1828,9 +1850,9 @@ class Letters(Responses):
     content = db.Column(db.String)
 
     def __init__(
-        self, request_id, privacy, title, content, date_modified=None, is_editable=False
+        self, request_id, privacy, title, content, date_modified=None, release_date=None, is_editable=False
     ):
-        super(Letters, self).__init__(request_id, privacy, date_modified, is_editable)
+        super(Letters, self).__init__(request_id, privacy, date_modified, release_date, is_editable)
         self.title = title
         self.content = content
 
@@ -1942,10 +1964,11 @@ class Determinations(Responses):
         reason,
         date=None,
         date_modified=None,
+        release_date=None,
         is_editable=False,
     ):
         super(Determinations, self).__init__(
-            request_id, privacy, date_modified, is_editable
+            request_id, privacy, date_modified, release_date, is_editable
         )
         self.dtype = dtype
 
@@ -2025,6 +2048,8 @@ class CustomRequestForms(db.Model):
     repeatable - an integer the determines if that form is repeatable. 0 = not repeatable, 1 = can be added twice, etc.
     category - an integer to separate different types of custom forms for an agency
     minimum_required - an integer to dictates the minimum amount of fields required for a successful submission
+    order - an integer to determine sorting order when displaying form options in the dropdown
+    is_active - a boolean to determine if the custom request form is actively being used by the agency or not
     """
 
     __tablename__ = "custom_request_forms"
@@ -2036,6 +2061,8 @@ class CustomRequestForms(db.Model):
     repeatable = db.Column(db.Integer, nullable=False)
     category = db.Column(db.Integer, nullable=True)
     minimum_required = db.Column(db.Integer, nullable=True)
+    order = db.Column(db.Integer, nullable=True)
+    is_active = db.Column(db.Boolean, nullable=True)
 
     @classmethod
     def populate(cls, json_name=None):
@@ -2073,24 +2100,25 @@ class CustomRequestForms(db.Model):
             db.session.commit()
 
 
-class MFA(db.Model):
-    __tablename__ = "mfa"
+class FoilOfficers(db.Model):
+    """
+    Define the FoilOfficers class with the following columns and relationships:
+
+    id - an integer that is the primary key of FoilOfficers
+    agency - a string that is the name of the agency the officer belongs to
+    role - a string that defines the officer's role within the FOIL process
+    first_name - a string that is the officer's first name
+    last_name - a string that is the officer's last name
+    title - a string that is the officer's official job title
+    email - a string that is the officer's email address
+    using_openrecords - a boolean to determine if the officer is actively using the OpenRecords portal or not
+    """
+    __tablename__ = "foil_officers"
     id = db.Column(db.Integer, primary_key=True)
-    user_guid = db.Column(db.String(64), db.ForeignKey("users.guid"))
-    secret = db.Column(db.LargeBinary(), nullable=False)
-    device_name = db.Column(db.String(32), nullable=False)
-    is_valid = db.Column(db.Boolean(), nullable=False, default=False)
-
-    __table_args__ = (
-        db.ForeignKeyConstraint([user_guid], [Users.guid], onupdate="CASCADE"),
-    )
-
-    def __init__(self,
-                 user_guid,
-                 secret,
-                 device_name,
-                 is_valid):
-        self.user_guid = user_guid
-        self.secret = secret
-        self.device_name = device_name
-        self.is_valid = is_valid
+    agency = db.Column(db.String)
+    role = db.Column(db.String)
+    first_name = db.Column(db.String)
+    last_name = db.Column(db.String)
+    title = db.Column(db.String)
+    email = db.Column(db.String)
+    using_openrecords = db.Column(db.Boolean)

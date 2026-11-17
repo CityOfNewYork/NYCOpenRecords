@@ -13,13 +13,19 @@
         <div id="navbar" class="navbar-collapse collapse">
             <ul class="nav navbar-nav">
                 <li class="openrecords_nav">
-                    <a class="openrecords-nav-anchor" href="{{ url_for('request.new') }}">
-                        {% if current_user.is_agency %}
+                    {% if current_user.is_agency %}
+                        <a class="openrecords-nav-anchor" href="{{ url_for('request.new') }}">
                             Add a Request
-                        {% else %}
+                        </a>
+                    {% elif current_user.is_public %}
+                        <a class="openrecords-nav-anchor" href="{{ url_for('request.new') }}">
                             Request a Record
-                        {% endif %}
-                    </a>
+                        </a>
+                    {% else %}
+                        <a class="openrecords-nav-anchor" href="{{ url_for('auth.login') }}">
+                            Request a Record
+                        </a>
+                    {% endif %}
                 </li>
                 <li class="openrecords_nav">
                     <a class="openrecords-nav-anchor" href="{{ url_for('request.view_all') }}">Search Requests</a>
@@ -35,6 +41,9 @@
                 </li>
                 <li class="openrecords_nav">
                     <a class="openrecords-nav-anchor" href="{{ url_for('main.technical_support') }}">Technical Support</a>
+                </li>
+                <li class="openrecords_nav">
+                    <a class="openrecords-nav-anchor" href="{{ url_for('main.foil_officers_directory') }}">FOIL Officers Directory</a>
                 </li>
                 {% if not current_user.is_anonymous %}
                     <li class="openrecords_nav">

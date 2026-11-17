@@ -13,17 +13,14 @@ import hmac
 import requests
 from base64 import b64encode
 from flask import (
-    abort, current_app, flash, redirect, request, session, url_for
+    abort, current_app, flash, g, redirect, request, session, url_for
 )
 from flask_login import current_user, login_user, logout_user
 from hashlib import sha256
 from ldap3 import Connection, Server, Tls
 from requests.exceptions import SSLError
 
-from app import (
-    login_manager,
-    sentry
-)
+from app import (login_manager, store)
 from app.auth.constants import error_msg
 from app.constants import event_type
 from app.constants.bulk_updates import EventsDict
@@ -32,8 +29,9 @@ from app.constants.web_services import (
     USER_SEARCH_ENDPOINT
 )
 from app.lib.db_utils import create_object, update_object
-from app.lib.onelogin.saml2.auth import OneLogin_Saml2_Auth
-from app.lib.onelogin.saml2.utils import OneLogin_Saml2_Utils
+from app.lib.multi_idp_saml_auth import MultiIdPSAMLAuth
+from onelogin.saml2.auth import OneLogin_Saml2_Auth
+from onelogin.saml2.utils import OneLogin_Saml2_Utils
 from app.lib.user_information import create_mailing_address
 from app.models import AgencyUsers, Events, UserRequests, Users
 from app.user.utils import es_update_assigned_users
@@ -341,9 +339,27 @@ def create_auth_event(auth_event_type: str, user_guid: str, new_value: dict):
     create_object(event)
 
 
+def register_user_session():
+    """Make this session the user's only valid one.
+
+    Called on the first request after login, when Flask-Session has assigned a sid.
+    A session that is still live is deleted from Redis; a stale record is
+    replaced without telling the user.
+    """
+    previous_sid = current_user.session_id
+    if previous_sid == session.sid:
+        return
+
+    if previous_sid is not None and store.exists("session:" + previous_sid):
+        store.delete("session:" + previous_sid)
+        g.duplicate_session = True
+
+    update_object({'session_id': session.sid}, Users, current_user.guid)
+
+
 # SAML Auth
 
-def init_saml_auth(onelogin_request):
+def init_saml_auth(onelogin_request, idp_id: str):
     """Initialize a SAML SP from a dictionary representation of a Flask request.
 
     Args:
@@ -353,8 +369,24 @@ def init_saml_auth(onelogin_request):
         OneLogin_Saml2_Auth: SAML SP Instance.
 
     """
-    saml_sp = OneLogin_Saml2_Auth(onelogin_request, custom_base_path=current_app.config['SAML_PATH'])
-    return saml_sp
+    multi_idp_auth = MultiIdPSAMLAuth()
+
+    # Load configurations for different IdPs
+    multi_idp_auth.load_idp_config('entraid', {
+        'custom_base_path': current_app.config['SAML_PATH_ENTRAID'],
+        'settings': {
+            # IdP specific settings
+        }
+    })
+
+    multi_idp_auth.load_idp_config('nycid', {
+        'custom_base_path': current_app.config['SAML_PATH_NYCID'],
+        'settings': {
+            # IdP specific settings
+        }
+    })
+
+    return multi_idp_auth.get_auth(idp_id, onelogin_request)
 
 
 def prepare_onelogin_request(flask_request):
@@ -376,7 +408,7 @@ def prepare_onelogin_request(flask_request):
         'request_uri': url_for('auth.saml', _external=True),
         'get_data': flask_request.args.copy(),
         # Uncomment if using ADFS as IdP, https://github.com/onelogin/python-saml/pull/144
-        # 'lowercase_urlencoding': True,
+        'lowercase_urlencoding': True,
         'post_data': flask_request.form.copy()
     }
 
@@ -457,13 +489,15 @@ def saml_slo(saml_sp):
     if 'samlSessionIndex' in session:
         session_index = session['samlSessionIndex']
 
-    update_object(
-        {
-            'session_id': None
-        },
-        Users,
-        current_user.guid
-    )
+    # the local session may already be gone: a timeout, or a logout in another tab
+    if not current_user.is_anonymous:
+        update_object(
+            {
+                'session_id': None
+            },
+            Users,
+            current_user.guid
+        )
 
     return saml_sp.logout(name_id=name_id, session_index=session_index)
 
@@ -515,6 +549,7 @@ def saml_acs(saml_sp, onelogin_request):
         )
         login_user(user)
         session.permanent = True
+        session['register_session'] = True
         create_auth_event(
             auth_event_type=event_type.USER_LOGIN,
             user_guid=user.guid,
@@ -526,9 +561,9 @@ def saml_acs(saml_sp, onelogin_request):
         self_url = OneLogin_Saml2_Utils.get_self_url(onelogin_request)
 
         if 'RelayState' in request.form and self_url != request.form['RelayState']:
-            return redirect(saml_sp.redirect_to(request.form['RelayState'], {'verify_mfa': 'true'}))
+            return redirect(saml_sp.redirect_to(request.form['RelayState']))
 
-        return redirect(url_for('main.index', verify_mfa=True))
+        return redirect(url_for('main.index'))
 
     error_message = "Errors on SAML ACS:\n{errors}\n\nUser Data: {user_data}".format(errors='\n'.join(errors),
                                                                                      user_data=user_data)
@@ -645,7 +680,6 @@ def _web_services_request(endpoint, params, method='GET'):
                 params=params  # query string parameters always used
             )
         except SSLError:
-            sentry.captureException()
             continue
         break
     return req
@@ -689,7 +723,6 @@ def _generate_signature(password, string):
                                digestmod=sha256)
         signature = hmac_sha256.hexdigest()
     except Exception as e:
-        sentry.captureException()
         current_app.logger.error("Failed to generate NYC ID.Web Services "
                                  "authentication signature: ", e)
     return signature

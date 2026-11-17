@@ -9,6 +9,10 @@
             "href",
             webServicesUrl + "/account/user/profile.htm?returnOnSave=true&target=" + btoa(window.location.href)
         );
+        $("#continue-to-profile").attr(
+            "href",
+            webServicesUrl + "/account/user/profile.htm?returnOnSave=true&target=" + btoa(window.location.origin + "/auth/logout")
+        );
     {% endif %}
 
     $.ajaxSetup({
@@ -25,19 +29,33 @@
         }
     });
     {% if current_user.is_authenticated %}
-        sessionTimeout({
-            warnAfter: 10 * 60 * 1000, // 10 minutes
-            timeOutAfter: 15 * 60 * 1000, // 15 minutes
-            timeOutUrl: '/auth/logout?timeout=True',
-            logOutUrl: '/auth/logout',
-            keepAliveUrl: '/active',
-            titleText: 'Your Session is About to Expire!',
+        $.sessionTimeout({
+            title: 'Your Session is About to Expire!',
             message: 'Your session is about to expire.',
-            stayConnectedBtnText: 'Stay Connected',
-            logoutBtnText: 'Logout',
+            logoutButton: 'Logout',
+            keepAliveButton: 'Stay Connected',
+            keepAliveUrl: '/active',
+            ajaxType: 'POST',
+            ajaxData: '',
+            redirUrl: '/auth/logout?timeout=True&forced_logout=True',
+            logoutUrl: '/auth/logout',
+            warnAfter: 25 * 60 * 1000, // 25 minutes
+            redirAfter:30 * 60 * 1000, // 30 minutes
+            keepAliveInterval: 1 * 60 * 1000, // 1 minute
+            keepAlive: true,
+            ignoreUserActivity: false,
+            onStart: false,
+            onWarn: false,
+            onRedir: false,
+            countdownMessage: 'You will be automatically logged out in {timer}.',
+            countdownBar: true,
+            countdownSmart: true
         });
-        {% if duplicate_session %}
+        {% if g.get('duplicate_session') %}
             $("#concurrent-session-modal").modal("show");
+        {% endif %}
+        {% if current_user.is_public and (current_user.first_name == "" or current_user.last_name == "") %}
+            $("#missing-name-modal").modal("show");
         {% endif %}
     {% endif %}
 

@@ -12,12 +12,22 @@
 "use strict";
 
 $(document).ready(function () {
-    $(window).load(function () {
-        // Determine if the agencyRequestInstructions need to be shown on page load.
-        getRequestAgencyInstructions();
-        // Check for custom request forms on page load (browser back button behavior).
-        getCustomRequestForms($("#request-agency").val());
-    });
+    // Reload the page if it was loaded from a cached version (back browser button).
+    // Used to clear out form data and ensure custom request forms are properly loaded.
+    (function () {
+        window.onpageshow = function (event) {
+            if (event.persisted) {
+                window.location.reload();
+            }
+        };
+    })();
+
+    // Disable agency dropdown until a category is selected
+    $("#request-agency").prop("disabled", true);
+    // Determine if the agencyRequestInstructions need to be shown on page load.
+    getRequestAgencyInstructions();
+    // Check for custom request forms on page load (browser back button behavior).
+    getCustomRequestForms($("#request-agency").val());
 
     $("input[name='tz-name']").val(jstz.determine().name());
 
@@ -43,6 +53,12 @@ $(document).ready(function () {
                 previousValues = [];
                 currentValues = [];
                 getCustomRequestForms(sel.find("option:first-child").val());
+                // Enable/disable agency dropdown based on the value of category
+                if ($("#request-category").val() === "") {
+                    $("#request-agency").prop("disabled", true);
+                } else {
+                    $("#request-agency").prop("disabled", false);
+                }
             }
         });
     });
@@ -112,14 +128,18 @@ $(document).ready(function () {
     // Apply parsley validation styles to the input forms for a new request.
     $("#request-title").attr("data-parsley-required", "");
     $("#request-title").attr("data-parsley-maxlength", 90);
+    $("#request-category").attr("data-parsley-required", "");
     $("#request-agency").attr("data-parsley-required", "");
     $("#request-description").attr("data-parsley-required", "");
     $("#request-description").attr("data-parsley-maxlength", 5000);
 
     // Custom Validation Messages
+    $("#request-category").attr("data-parsley-required-message",
+        "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+        "<strong>Error, a category is required.</strong> Please select a category from the drop-down menu.");
     $("#request-agency").attr("data-parsley-required-message",
         "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
-        "<strong>Error, an agency is required.</strong> Please select an agency from the drop-down menu.");
+        "<strong>Error, an agency is required.</strong> Please select a category first then an agency from the drop-down menu.");
     $("#request-title").attr("data-parsley-required-message",
         "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
         "<strong>Error, a title is required.</strong> Please type in a short title for your request.");

@@ -15,7 +15,6 @@ from tempfile import TemporaryFile
 from functools import wraps
 from contextlib import contextmanager
 from flask import current_app, send_from_directory, redirect
-from app import sentry
 from azure.storage.blob import (generate_blob_sas,
                                 BlobSasPermissions,
                                 BlobServiceClient,
@@ -56,7 +55,6 @@ def sftp_ctx():
     try:
         yield sftp
     except Exception as e:
-        sentry.captureException()
         raise paramiko.SFTPError("Exception occurred with SFTP: {}".format(e))
     finally:
         sftp.close()
@@ -96,7 +94,6 @@ def _sftp_exists(sftp, path):
         sftp.stat(path)
         return True
     except IOError:
-        sentry.captureException()
         return False
 
 
@@ -115,7 +112,6 @@ def _sftp_makedirs(sftp, path):
         try:
             sftp.stat(dir_)
         except IOError:
-            sentry.captureException()
             sftp.mkdir(dir_)
 
 
@@ -137,7 +133,7 @@ def _sftp_get_mime_type(sftp, path):
         try:
             sftp.getfo(path, tmp, _raise_if_too_big)
         except MaxTransferSizeExceededException:
-            sentry.captureException()
+            pass
         tmp.seek(0)
         if current_app.config['MAGIC_FILE']:
             # Check using custom mime database file

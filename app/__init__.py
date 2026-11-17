@@ -9,19 +9,19 @@ import os
 import redis
 from business_calendar import Calendar, MO, TU, WE, TH, FR
 from celery import Celery
-from flask import (Flask, abort, redirect, render_template, request as flask_request, session, url_for)
+from flask import (Flask, abort, redirect, render_template, session as flask_session,
+                   url_for, request as flask_request)
 from flask_bootstrap import Bootstrap
-from flask_login import LoginManager, current_user
+from flask_login import LoginManager, current_user, logout_user
 from flask_mail import Mail
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
-from flask_tracy import Tracy
 from flask_wtf.csrf import CSRFProtect
 from flask_session import Session
-from raven.contrib.flask import Sentry
 
 from app import celery_config
 from app.constants import OPENRECORDS_DL_EMAIL
+from app.constants.session import SESSION_ENFORCEMENT_EXEMPT_ENDPOINTS
 from app.lib import NYCHolidays, jinja_filters
 from config import Config, config
 from elasticsearch import Elasticsearch
@@ -32,13 +32,11 @@ db = SQLAlchemy()
 csrf = CSRFProtect()
 moment = Moment()
 mail = Mail()
-tracy = Tracy()
 login_manager = LoginManager()
 store = redis.StrictRedis(db=Config.SESSION_REDIS_DB,
                           host=Config.REDIS_HOST,
                           port=Config.REDIS_PORT)
 celery = Celery(__name__, broker=Config.CELERY_BROKER_URL)
-sentry = Sentry()
 sess = Session()
 
 upload_redis = redis.StrictRedis(
@@ -83,6 +81,7 @@ def create_app(config_name='default'):
     '''))
     app.logger.addHandler(mail_handler)
 
+    os.makedirs(app.config['LOGFILE_DIRECTORY'], exist_ok=True)
     handler_error = TimedRotatingFileHandler(
         os.path.join(app.config['LOGFILE_DIRECTORY'],
                      'openrecords_{}_error.log'.format(app.config['APP_VERSION_STRING'])),
@@ -108,7 +107,6 @@ def create_app(config_name='default'):
     mail.init_app(app)
     celery.conf.update(app.config)
     celery.config_from_object(celery_config)
-    sentry.init_app(app, logging=app.config["USE_SENTRY"], level=logging.INFO)
     sess.init_app(app)
     app.elasticsearch = Elasticsearch(Config.ELASTICSEARCH_HOST)
 
@@ -173,12 +171,30 @@ def create_app(config_name='default'):
             if not flask_request.cookies.get('authorized_maintainer', None):
                 return abort(503)
 
-    if app.config['USE_MFA']:
-        @app.before_request
-        def check_valid_login():
-            if current_user.is_authenticated:
-                if not session.get('mfa_verified', False) and flask_request.endpoint not in ['mfa.register', 'mfa.verify', 'static', 'auth.logout']:
-                    return redirect(url_for('mfa.verify'))
+    @app.before_request
+    def enforce_active_session():
+        """Allow only the session registered against this user to continue.
+
+        Logout and SAML endpoints are exempt so a timeout or forced logout can
+        finish the NYC.ID logout round trip.
+        """
+        if not current_user.is_authenticated:
+            return None
+
+        if flask_request.endpoint in SESSION_ENFORCEMENT_EXEMPT_ENDPOINTS:
+            return None
+
+        from app.auth.utils import register_user_session
+        if flask_session.pop('register_session', False):
+            register_user_session()
+            return None
+
+        if current_user.session_id == flask_session.sid:
+            return None
+
+        logout_user()
+        flask_session.clear()
+        return redirect(url_for('main.index'))
 
     @app.context_processor
     def add_session_config():
@@ -240,9 +256,5 @@ def create_app(config_name='default'):
 
     from .permissions import permissions
     app.register_blueprint(permissions, url_prefix="/permissions/api/v1.0")
-
-    if app.config['USE_MFA']:
-        from .mfa import mfa
-        app.register_blueprint(mfa, url_prefix="/mfa")
 
     return app

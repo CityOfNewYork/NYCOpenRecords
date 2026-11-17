@@ -1,7 +1,8 @@
 from datetime import datetime, timedelta
 
 import tablib
-from flask import current_app, url_for, request as flask_request, Markup
+from flask import current_app, url_for, request as flask_request
+from markupsafe import Markup
 from sqlalchemy import asc, func, Date, or_
 from sqlalchemy.orm import joinedload
 from urllib.parse import urljoin
@@ -16,19 +17,23 @@ from app.models import Agencies, Emails, Events, Requests, Responses, Users, Fil
 
 
 @celery.task(bind=True, name='app.report.utils.generate_acknowledgment_report')
-def generate_acknowledgment_report(self, current_user_guid: str, date_from: datetime, date_to: datetime):
+def generate_acknowledgment_report(self, current_user_guid: str, date_from: datetime, date_to: datetime, cli_ein=None):
     """Celery task that generates the acknowledgment report for the user's agency with the specified date range.
 
     Args:
         current_user_guid: GUID of the current user
         date_from: Date to filter report from
         date_to: Date to filter report to
+        cli_ein: Agency ein provided by cli command
     """
-    current_user = Users.query.filter_by(guid=current_user_guid).one()
-    agency_ein = current_user.default_agency_ein
+    if cli_ein:
+        agency_ein = cli_ein
+    else:
+        current_user = Users.query.filter_by(guid=current_user_guid).one()
+        agency_ein = current_user.default_agency_ein
+
     agency = Agencies.query.options(joinedload(Agencies.active_users)).options(
         joinedload(Agencies.inactive_users)).filter(Agencies.ein == agency_ein).one()
-
     agency_users = agency.active_users + agency.inactive_users
     request_list = Requests.query.join(
         Events, Events.request_id == Requests.id
@@ -59,7 +64,9 @@ def generate_acknowledgment_report(self, current_user_guid: str, date_from: date
                'Address 2',
                'City',
                'State',
-               'Zipcode')
+               'Zipcode',
+               'Requester Title',
+               'Requester Organization')
     data_from_dates = []
     all_data = []
 
@@ -100,6 +107,8 @@ def generate_acknowledgment_report(self, current_user_guid: str, date_from: date
                 Markup(request.requester.mailing_address.get('city')).unescape(),
                 request.requester.mailing_address.get('state'),
                 request.requester.mailing_address.get('zip'),
+                Markup(request.requester.title).unescape(),
+                Markup(request.requester.organization).unescape()
             ))
         all_data.append((
             request.id,
@@ -118,6 +127,8 @@ def generate_acknowledgment_report(self, current_user_guid: str, date_from: date
             Markup(request.requester.mailing_address.get('city')).unescape(),
             request.requester.mailing_address.get('state'),
             request.requester.mailing_address.get('zip'),
+            Markup(request.requester.title).unescape(),
+            Markup(request.requester.organization).unescape()
         ))
     date_from_string = date_from.strftime('%Y%m%d')
     date_to_string = date_to.strftime('%Y%m%d')
@@ -126,16 +137,24 @@ def generate_acknowledgment_report(self, current_user_guid: str, date_from: date
                                    title='{}_{}'.format(date_from_string, date_to_string))
     all_dataset = tablib.Dataset(*all_data, headers=headers, title='all')
     excel_spreadsheet = tablib.Databook((dates_dataset, all_dataset))
-    send_email(subject='OpenRecords Acknowledgment Report',
-               to=[current_user.email],
-               template='email_templates/email_agency_report_generated',
-               agency_user=current_user.name,
-               attachment=excel_spreadsheet.export('xls'),
-               filename='FOIL_acknowledgments_{}_{}.xls'.format(date_from_string, date_to_string),
-               mimetype='application/octect-stream')
+
+    if cli_ein:
+        # Export to application server if an ein was provided from the cli command
+        with open('{}_FOIL_acknowledgments_{}_{}.xlsx'.format(agency_ein, date_from_string, date_to_string),
+                  'wb') as f:
+            f.write(excel_spreadsheet.export('xlsx'))
+            f.close()
+    else:
+        send_email(subject='OpenRecords Acknowledgment Report',
+                   to=[current_user.email],
+                   template='email_templates/email_agency_report_generated',
+                   agency_user=current_user.name,
+                   attachment=excel_spreadsheet.export('xlsx'),
+                   filename='{}_FOIL_acknowledgments_{}_{}.xlsx'.format(agency_ein, date_from_string, date_to_string),
+                   mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 
 
-def generate_request_closing_user_report(agency_ein: str, date_from: str, date_to: str, email_to: list):
+def generate_request_closing_user_report(agency_ein: str, date_from: str, date_to: str):
     """Generates a report of requests that were closed in a time frame.
 
     Generates a report of requests in a time frame with the following tabs:
@@ -150,7 +169,6 @@ def generate_request_closing_user_report(agency_ein: str, date_from: str, date_t
         agency_ein: Agency EIN
         date_from: Date to filter from
         date_to: Date to filter to
-        email_to: List of recipient emails
     """
     # Convert string dates
     date_from_utc = local_to_utc(datetime.strptime(date_from, '%Y-%m-%d'),
@@ -303,17 +321,15 @@ def generate_request_closing_user_report(agency_ein: str, date_from: str, date_t
                                          total_closed_dataset,
                                          person_month_dataset))
 
-    # Email report
-    send_email(subject='OpenRecords User Closing Report',
-               to=email_to,
-               email_content='Report attached',
-               attachment=excel_spreadsheet.export('xls'),
-               filename='FOIL_user_closing_{}_{}.xls'.format(date_from, date_to),
-               mimetype='application/octet-stream')
+    # Export to application server
+    with open('{}_FOIL_user_closing_{}_{}.xlsx'.format(agency_ein, date_from, date_to),
+              'wb') as f:
+        f.write(excel_spreadsheet.export('xlsx'))
+        f.close()
 
 
 @celery.task(bind=True, name='app.report.utils.generate_monthly_metrics_report')
-def generate_monthly_metrics_report(self, agency_ein: str, date_from: str, date_to: str, email_to: list):
+def generate_monthly_metrics_report(self, agency_ein: str, date_from: str, date_to: str, email_to: list, cli=False):
     """Generates a report of monthly metrics about opened and closed requests.
 
     Generates a report of requests in a time frame with the following tabs:
@@ -336,7 +352,8 @@ def generate_monthly_metrics_report(self, agency_ein: str, date_from: str, date_
         agency_ein: Agency EIN
         date_from: Date to filter from
         date_to: Date to filter to
-        email_to: List of recipient emails
+        email_to: List of recipient emails,
+        cli: Boolean flag to determine is the command was run from the cli
     """
     # Convert string dates
     date_from_utc = local_to_utc(datetime.strptime(date_from, '%Y-%m-%d'),
@@ -490,13 +507,20 @@ def generate_monthly_metrics_report(self, agency_ein: str, date_from: str, date_
         contact_agency_emails_dataset
     ))
 
-    # Email report
-    send_email(subject='OpenRecords Monthly Metrics Report',
-               to=email_to,
-               email_content='Report attached',
-               attachment=excel_spreadsheet.export('xls'),
-               filename='FOIL_monthly_metrics_report_{}_{}.xls'.format(date_from, date_to),
-               mimetype='application/octet-stream')
+    if cli:
+        # Export to application server
+        with open('{}_FOIL_monthly_metrics_report_{}_{}.xlsx'.format(agency_ein, date_from, date_to),
+                  'wb') as f:
+            f.write(excel_spreadsheet.export('xlsx'))
+            f.close()
+    else:
+        # Email report
+        send_email(subject='OpenRecords Monthly Metrics Report',
+                   to=email_to,
+                   email_content='Report attached',
+                   attachment=excel_spreadsheet.export('xlsx'),
+                   filename='{}_FOIL_monthly_metrics_report_{}_{}.xlsx'.format(agency_ein, date_from, date_to),
+                   mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 
 
 def generate_open_data_report(agency_ein: str, date_from: datetime, date_to: datetime):
@@ -534,7 +558,7 @@ def generate_open_data_report(agency_ein: str, date_from: datetime, date_to: dat
         Files.name,
         Responses.dataset_description).filter(
         Requests.agency_ein == agency_ein,
-        Requests.date_submitted.between(date_from, date_to),
+        Responses.date_modified.between(date_from, date_to),
         Responses.privacy != PRIVATE,
         Responses.is_dataset == True).all()
 
@@ -557,7 +581,7 @@ def generate_open_data_report(agency_ein: str, date_from: datetime, date_to: dat
         Responses.dataset_description,
         Links.url).filter(
         Requests.agency_ein == agency_ein,
-        Requests.date_submitted.between(date_from, date_to),
+        Responses.date_modified.between(date_from, date_to),
         Responses.privacy != PRIVATE,
         Responses.is_dataset == True).all()
 
@@ -756,5 +780,4 @@ def generate_open_data_report(agency_ein: str, date_from: datetime, date_to: dat
         all_requests_sheet,
     ))
 
-    # TODO: Update Excel spreadsheet format to xlsx
-    return excel_spreadsheet.export('xls')
+    return excel_spreadsheet.export('xlsx')

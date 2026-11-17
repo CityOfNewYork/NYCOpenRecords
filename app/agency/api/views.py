@@ -29,6 +29,9 @@ def get_active_users(agency_ein):
     :return: JSON Object({"active_users": [('', 'All'), ('o8pj0k', 'John Doe')],
                           "is_admin": True}), 200
     """
+    if current_user.is_anonymous:
+        return jsonify({}), 403
+
     if current_user.is_agency_admin(agency_ein):
         return jsonify({"active_users": get_active_users_as_choices(agency_ein), "is_admin": True}), 200
 
@@ -90,7 +93,7 @@ def get_custom_request_form_options(agency_ein):
                                                                   CustomRequestForms.repeatable,
                                                                   CustomRequestForms.category,
                                                                   CustomRequestForms.minimum_required).filter_by(
-        agency_ein=agency_ein).order_by(asc(CustomRequestForms.category), asc(CustomRequestForms.id)).all()
+        agency_ein=agency_ein, is_active=True).order_by(asc(CustomRequestForms.category), asc(CustomRequestForms.order)).all()
     # Convert the results of with_entities back to tuple format so that jsonify can be used
     custom_request_forms = [tuple(form) for form in custom_request_forms]
     return jsonify(custom_request_forms), 200
@@ -132,6 +135,7 @@ def get_custom_request_form_fields():
             past_date_invalid = value.get('past_date_invalid', None)
             current_date_invalid = value.get('current_date_invalid', None)
             future_date_invalid = value.get('future_date_invalid', None)
+            raw_html = value.get('raw_html_value', None)
 
             if character_counter:
                 character_counter_id = field_name + "-" + str(instance_id)
@@ -156,7 +160,7 @@ def get_custom_request_form_fields():
                 min_length=min_length, max_length=max_length, instance_id=instance_id, placeholder=placeholder,
                 character_counter=character_counter, tooltip=tooltip, help_text=help_text,
                 past_date_invalid=past_date_invalid, current_date_invalid=current_date_invalid,
-                future_date_invalid=future_date_invalid) + '\n'
+                future_date_invalid=future_date_invalid, raw_html=raw_html) + '\n'
     data['form_template'] = form_template
     data['character_counters'] = character_counters
     data['popovers'] = popovers
@@ -174,15 +178,25 @@ def get_request_types(agency_ein):
 
     :return: JSON Object({"request_type": [('', 'All'), ('Form Name', 'Form Name')]}), 200
     """
+    if current_user.is_anonymous:
+        return jsonify({}), 403
+
     if current_user.is_agency_active(agency_ein):
         agency = Agencies.query.filter_by(ein=agency_ein).one_or_none()
         if agency is not None and agency.agency_features['custom_request_forms']['enabled']:
-            request_types = [
+            active_request_types = [
                 (custom_request_form.form_name, custom_request_form.form_name)
                 for custom_request_form in CustomRequestForms.query.filter_by(
-                    agency_ein=agency_ein
-                ).order_by(asc(CustomRequestForms.category), asc(CustomRequestForms.id)).all()
+                    agency_ein=agency_ein, is_active=True
+                ).order_by(asc(CustomRequestForms.category), asc(CustomRequestForms.order)).all()
             ]
+            inactive_request_types = [
+                (custom_request_form.form_name, "(Inactive) " + custom_request_form.form_name)
+                for custom_request_form in CustomRequestForms.query.filter_by(
+                    agency_ein=agency_ein, is_active=False
+                ).order_by(asc(CustomRequestForms.category), asc(CustomRequestForms.order)).all()
+            ]
+            request_types = active_request_types + inactive_request_types
             request_types.insert(0, ("", "All"))
             return jsonify({"request_types": request_types}), 200
 

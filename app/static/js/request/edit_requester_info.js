@@ -124,7 +124,7 @@ $(function () {
     requesterModal.on("hidden.bs.modal", function () {
         var i;
         for (i = 0; i < all.length; i++) {
-            all[i].val(all[i].attr("value"));
+            all[i].val(all[i].val());
         }
         state.val(selected_state_value);
         for (i = 0; i < required.length; i++) {

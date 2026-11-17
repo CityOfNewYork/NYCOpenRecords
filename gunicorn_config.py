@@ -1,3 +1,4 @@
+import os
 from multiprocessing import cpu_count
 
 #   bind - The socket to bind.
@@ -5,7 +6,7 @@ from multiprocessing import cpu_count
 #       A string of the form: 'HOST', 'HOST:PORT', 'unix:PATH'.
 #       An IP is a valid HOST.
 
-bind = "127.0.0.1:8080"
+bind = ":8080"
 
 #
 # Worker processes
@@ -33,7 +34,9 @@ bind = "127.0.0.1:8080"
 #       A positive integer. Generally set in the 1-5 seconds range.
 #
 
-workers = cpu_count() * 2
+# In a container cpu_count() reports the host's cores, not the container's
+# allocation, so set WEB_CONCURRENCY in Azure Container Apps.
+workers = int(os.environ.get('WEB_CONCURRENCY', cpu_count() * 2))
 timeout = 120
 keepalive = 2
 
@@ -62,7 +65,15 @@ access_log_format = '%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s"
 #
 #        A path string. If not set, no PID file will be written.
 
-pidfile = "openrecords_gunicorn.pid"
+# No PID file: the app directory is read-only in the container.
+pidfile = None
+
+# Azure Container Apps ingress terminates TLS and is the only way in, so trust
+# its X-Forwarded-* headers; SAML needs the original https scheme.
+forwarded_allow_ips = "*"
+
+# Worker heartbeat files in memory rather than on the container's overlay disk.
+worker_tmp_dir = "/dev/shm"
 
 #
 #   SSL

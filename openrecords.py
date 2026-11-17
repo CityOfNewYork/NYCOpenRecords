@@ -51,14 +51,14 @@ import sys
 import traceback
 import click
 
-from flask import url_for, render_template, request as flask_request
+from flask import url_for, render_template, request as flask_request, current_app
 from flask.cli import main
 from flask_login import login_user
 from flask_migrate import Migrate, upgrade
 from werkzeug.middleware.profiler import ProfilerMiddleware
 
 from app import create_app, db
-from app.constants import OPENRECORDS_DL_EMAIL
+from app.constants import OPENRECORDS_DL_EMAIL, request_status
 from app.jobs import _update_request_statuses
 from app.lib.date_utils import process_due_date, local_to_utc
 from app.lib.email_utils import send_email
@@ -80,9 +80,12 @@ from app.models import (
     UserRequests,
     Users,
 )
-from app.report.utils import generate_request_closing_user_report, generate_monthly_metrics_report
+from app.report.utils import (generate_request_closing_user_report,
+                              generate_monthly_metrics_report,
+                              generate_acknowledgment_report
+                              )
 from app.request.utils import generate_guid
-from app.response.utils import add_extension
+from app.response.utils import add_extension, add_closing_cli
 from app.search.utils import recreate
 from app.user.utils import make_user_admin
 
@@ -200,27 +203,35 @@ def add_user(
 @click.option("--agency_ein", prompt="Agency EIN (e.g. 0002)")
 @click.option("--date_from", prompt="Date From (e.g. 2000-01-01")
 @click.option("--date_to", prompt="Date To (e.g. 2000-02-01)")
-@click.option("--emails", prompt="Emails (e.g. test@mailinator.com,test2@mailinator.com)")
-def generate_closing_report(agency_ein: str, date_from: str, date_to: str, emails: str):
+def generate_closing_report(agency_ein: str, date_from: str, date_to: str):
     """Generate request closing report.
     """
-    email_list = emails.split(',')
-    generate_request_closing_user_report(agency_ein, date_from, date_to, email_list)
+    generate_request_closing_user_report(agency_ein=agency_ein, date_from=date_from, date_to=date_to)
 
 
 @app.cli.command()
 @click.option("--agency_ein", prompt="Agency EIN (e.g. 0002)")
 @click.option("--date_from", prompt="Date From (e.g. 2000-01-01")
 @click.option("--date_to", prompt="Date To (e.g. 2000-02-01)")
-@click.option("--emails", prompt="Emails (e.g. test@mailinator.com,test2@mailinator.com)")
-def generate_monthly_report(agency_ein: str, date_from: str, date_to: str, emails: str):
+def generate_monthly_report(agency_ein: str, date_from: str, date_to: str):
     """Generate monthly metrics report.
 
     CLI command to generate monthly metrics report.
     Purposely leaving a full date range option instead of a monthly limit in order to provide more granularity for devs.
     """
-    email_list = emails.split(',')
-    generate_monthly_metrics_report(agency_ein, date_from, date_to, email_list)
+    generate_monthly_metrics_report(agency_ein=agency_ein, date_from=date_from, date_to=date_to, email_to=None, cli=True)
+
+
+@app.cli.command()
+@click.option("--agency_ein", prompt="Agency EIN (e.g. 0002)")
+@click.option("--date_from", prompt="Date From (e.g. 2000-01-01")
+@click.option("--date_to", prompt="Date To (e.g. 2000-02-01)")
+def generate_acknowledgement_report(agency_ein: str, date_from: str, date_to: str):
+    date_from = local_to_utc(datetime.strptime(date_from, '%Y-%m-%d'),
+                             current_app.config['APP_TIMEZONE'])
+    date_to = local_to_utc(datetime.strptime(date_to, '%Y-%m-%d'),
+                           current_app.config['APP_TIMEZONE'])
+    generate_acknowledgment_report(current_user_guid=None, date_from=date_from, date_to=date_to, cli_ein=agency_ein)
 
 
 @app.cli.command()
@@ -276,16 +287,48 @@ def extend_requests(agency_ein: str, agency_name: str, user_guid: str, extension
 
 
 @app.cli.command()
+@click.option("--agency_ein", prompt="Agency EIN (e.g. 0056)")
+@click.option("--user_guid", prompt="User GUID")
+@click.option("--reason_text", prompt="Reason text")
+@click.option("--date_closed", prompt="Date closed", default="")
+@click.option("--requests_to_close_file", prompt="Requests to close file", default="")
+@click.option("--send_emails", prompt="Send emails", is_flag=True, default=False)
+def close_requests(agency_ein: str, user_guid: str, reason_text: str, date_closed: str, requests_to_close_file: str, send_emails: bool):
+    # Create request context
+    ctx = app.test_request_context()
+    ctx.push()
+    app.preprocess_request()
+
+    # Select user to perform the extensions
+    user = Users.query.filter_by(guid=user_guid).first()
+    login_user(user)
+
+    # Close open requests
+    if requests_to_close_file:
+        file = open(requests_to_close_file)
+        data = file.read()
+        data_to_list = data.split("\n")
+        open_requests = Requests.query.filter(Requests.agency_ein==agency_ein, Requests.status!=request_status.CLOSED, Requests.id.in_(data_to_list)).order_by(Requests.id).all()
+    else:
+        open_requests = Requests.query.filter(Requests.agency_ein==agency_ein, Requests.status!=request_status.CLOSED).order_by(Requests.id).all()
+    for request in open_requests:
+        try:
+            # Close request
+            add_closing_cli(
+                request.id,
+                reason_text,
+                date_closed,
+                send_emails
+            )
+            print(request.id, 'closed')
+        except Exception as e:
+            print(request.id, 'failed')
+            print(e)
+
+
+@app.cli.command()
 def update_request_statuses():
-    try:
-        _update_request_statuses()
-    except Exception:
-        db.session.rollback()
-        send_email(
-            subject="Update Request Statuses Failure",
-            to=[OPENRECORDS_DL_EMAIL],
-            email_content=traceback.format_exc().replace("\n", "<br/>").replace(" ", "&nbsp;")
-        )
+    _update_request_statuses()
 
 
 @app.cli.command

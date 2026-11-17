@@ -62,14 +62,14 @@ class Config:
     PERMANENT_SESSION_LIFETIME = timedelta(minutes=int(os.environ.get('PERMANENT_SESSION_LIFETIME', 20)))
     SESSION_TYPE = os.environ.get('SESSION_TYPE', 'redis')
     USE_SAML = os.environ.get('USE_SAML') == "True"
-    MFA_ENCRYPT_FILE = os.environ.get('MFA_ENCRYPT_FILE')
-    USE_MFA = os.environ.get('USE_MFA') == "True"
 
     AUTH_TYPE = 'None'
 
     if USE_SAML:
-        SAML_PATH = (os.environ.get('SAML_PATH') or
-                     os.path.join(os.path.abspath(os.path.dirname(__file__)), 'saml'))
+        SAML_PATH_NYCID = os.environ.get('SAML_PATH_NYCID')
+        SAML_PATH_ENTRAID = os.environ.get('SAML_PATH_ENTRAID')
+        # SAML_PATH = (os.environ.get('SAML_PATH') or
+        #              os.path.join(os.path.abspath(os.path.dirname(__file__)), 'saml'))
         WEB_SERVICES_URL = os.environ.get('SAML_WEB_SERVICES_URL')
         VERIFY_WEB_SERVICES = os.environ.get('SAML_VERIFY_WEB_SERVICES') == "True"
         NYC_ID_USERNAME = os.environ.get('SAML_NYC_ID_USERNAME')
@@ -147,9 +147,15 @@ class Config:
     MAGIC_FILE = (os.environ.get('MAGIC_FILE') or
                   os.path.join(os.path.abspath(os.path.dirname(__file__)), 'magic'))
 
-    # ReCaptcha
-    RECAPTCHA3_PUBLIC_KEY = os.environ.get("RECAPTCHA_SITE_KEY_V3", "")
-    RECAPTCHA3_PRIVATE_KEY = os.environ.get("RECAPTCHA_SECRET_KEY_V3", "")
+    # ReCaptcha Settings
+    RECAPTCHA_ENABLED = os.environ.get("RECAPTCHA_ENABLED") == "True"
+    RECAPTCHA_PUBLIC_KEY = os.environ.get("RECAPTCHA_PUBLIC_KEY")
+    RECAPTCHA_PRIVATE_KEY = os.environ.get("RECAPTCHA_PRIVATE_KEY")
+    RECAPTCHA_THRESHOLD = float(os.environ.get("RECAPTCHA_THRESHOLD"))
+
+    # Google Analytics Settings
+    GOOGLE_ANALYTICS_ENABLED = os.environ.get("GOOGLE_ANALYTICS_ENABLED") == "True"
+    GOOGLE_ANALYTICS_ID = os.environ.get("GOOGLE_ANALYTICS_ID")
 
     # ElasticSearch settings
     ELASTICSEARCH_HOST = os.environ.get('ELASTICSEARCH_HOST') or "localhost:9200"
@@ -165,10 +171,7 @@ class Config:
                                else None)
     ELASTICSEARCH_CHUNK_SIZE = int(os.environ.get('ELASTICSEARCH_CHUNK_SIZE', 100))
 
-    # https://www.elastic.co/blog/index-vs-type
-
-    SENTRY_DSN = os.environ.get('SENTRY_DSN')
-    USE_SENTRY = os.environ.get('USE_SENTRY') == "True"
+    # https://www.elastic.co/blog/index-vs-typea/
 
     # Azure Settings
     USE_VOLUME_STORAGE = os.environ.get('USE_VOLUME_STORAGE') == "True"

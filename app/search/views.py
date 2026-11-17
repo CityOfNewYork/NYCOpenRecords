@@ -3,7 +3,8 @@ from datetime import datetime
 from io import StringIO, BytesIO
 import re
 
-from flask import current_app, request, render_template, jsonify, Markup
+from flask import current_app, request, render_template, jsonify
+from markupsafe import Markup
 from flask.helpers import send_file
 from flask_login import current_user
 from sqlalchemy.orm import joinedload
@@ -14,7 +15,6 @@ from app.models import Requests
 from app.search import search
 from app.search.constants import DEFAULT_HITS_SIZE, ALL_RESULTS_CHUNKSIZE
 from app.search.utils import search_requests, convert_dates
-from app import sentry
 
 
 @search.route("/requests", methods=["GET"])
@@ -56,19 +56,16 @@ def requests():
     try:
         agency_ein = request.args.get("agency_ein", "")
     except ValueError:
-        sentry.captureException()
         agency_ein = None
 
     try:
         size = int(request.args.get("size", DEFAULT_HITS_SIZE))
     except ValueError:
-        sentry.captureException()
         size = DEFAULT_HITS_SIZE
 
     try:
         start = int(request.args.get("start"), 0)
     except ValueError:
-        sentry.captureException()
         start = 0
 
     query = request.args.get("query")
@@ -161,7 +158,6 @@ def requests_doc(doc_type):
         try:
             agency_ein = request.args.get("agency_ein", "")
         except ValueError:
-            sentry.captureException()
             agency_ein = None
 
         tz_name = request.args.get("tz_name", current_app.config["APP_TIMEZONE"])
@@ -246,12 +242,34 @@ def requests_doc(doc_type):
         user_agencies = current_user.get_agencies
         for req in all_requests:
             if req.agency_ein in user_agencies:
+                # Determine if description or custom metadata should be used in the report
+                if req.custom_metadata == {} or req.custom_metadata is None:
+                    description_for_report = req.description
+                else:
+                    custom_metadata = req.custom_metadata
+                    custom_metadata_text = ''
+                    for form_number, form_values in sorted(custom_metadata.items()):
+                        custom_metadata_text = custom_metadata_text + 'Request Type: ' + form_values[
+                            'form_name'] + '\n\n'
+                        for field_number, field_values in sorted(form_values['form_fields'].items()):
+                            field_value = field_values.get('field_value', '')
+                            field_value = field_value[:5000]
+                            if field_value is None:
+                                field_value = ''
+                            if isinstance(field_value, list):
+                                custom_metadata_text = custom_metadata_text + field_values[
+                                    'field_name'] + ':\n' + ', '.join(field_values.get('field_value', '')) + '\n\n'
+                            else:
+                                custom_metadata_text = custom_metadata_text + field_values[
+                                    'field_name'] + ':\n' + field_value + '\n\n'
+                        custom_metadata_text = custom_metadata_text + '\n'
+                    description_for_report = custom_metadata_text
                 writer.writerow(
                     [
                         req.id,
                         req.agency.name,
                         Markup(req.title).unescape(),
-                        Markup(req.description).unescape(),
+                        Markup(description_for_report).unescape(),
                         req.agency_request_summary,
                         req.status,
                         req.date_created,

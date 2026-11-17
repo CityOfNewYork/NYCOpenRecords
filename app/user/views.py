@@ -1,8 +1,9 @@
 from collections import defaultdict
 from datetime import datetime
 
-from flask import jsonify, request, escape
+from flask import jsonify, request
 from flask_login import current_user
+from markupsafe import escape
 
 from app.constants import (
     event_type,

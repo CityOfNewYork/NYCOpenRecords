@@ -12,7 +12,9 @@
                     href="mailto:{{ agency_appeals_email }}?subject={{ request.id }}%20-%20Appeal">{{ agency_appeals_email }}</a>
         within 30 days.
     </span>
+    <br><br>
     {% endif %}
+    <span class="mceNonEditable"><strong>Please check your email inbox's spam folder to ensure you received all records provided by the agency.</strong></span>
 {% else %}
     {{ content | safe }}
 {% endif %}

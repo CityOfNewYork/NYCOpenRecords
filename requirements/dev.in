@@ -1,0 +1,7 @@
+# Development and test tools, constrained to the production lock. Lock with:
+#   uv pip compile requirements/dev.in -o requirements/dev.txt \
+#     --python-version 3.14 --python-platform x86_64-unknown-linux-gnu --generate-hashes --upgrade
+-c requirements.txt
+
+pytest
+pytest-cov

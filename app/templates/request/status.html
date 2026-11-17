@@ -95,11 +95,13 @@
             <strong>Submitted Date:</strong><br>
             {{ moment(request.date_submitted).format('MM/DD/YYYY') }}<br>
         {% endif %}
-        {% if not (request.was_acknowledged or request.was_reopened) %}
-            <strong>Acknowledgment</strong><br>
+        {% if request.status != status.CLOSED %}
+            {% if not (request.was_acknowledged or request.was_reopened) %}
+                <strong>Acknowledgment</strong><br>
+            {% endif %}
+            <strong>Due Date:</strong><br>
+            {{ moment(request.due_date).format('MM/DD/YYYY') }}
         {% endif %}
-        <strong>Due Date:</strong><br>
-        {{ moment(request.due_date).format('MM/DD/YYYY') }}
     </p>
     <p align="center" id="agency-contact-modal-text">
         <a data-target="#contact-modal" data-toggle="modal" class="MainNavText" id="MainNavHelp"

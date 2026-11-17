@@ -13,14 +13,13 @@ from flask import (
     request as flask_request,
     current_app,
     flash,
-    Markup,
     jsonify,
     abort,
-    escape
 )
 from flask_login import current_user
 from sqlalchemy import any_
 from sqlalchemy.orm.exc import NoResultFound
+from markupsafe import Markup, escape
 
 from app.constants import request_status, permission, HIDDEN_AGENCIES
 from app.lib.date_utils import DEFAULT_YEARS_HOLIDAY_LIST, get_holidays_date_list
@@ -58,8 +57,8 @@ from app.user_request.forms import (
     RemoveUserRequestForm,
 )
 from app.user_request.utils import get_current_point_of_contact
-from app import sentry
 import json
+import requests
 
 
 @request.route("/new", methods=["GET", "POST"])
@@ -79,23 +78,57 @@ def new():
     kiosk_mode = eval_request_bool(escape(flask_request.args.get("kiosk_mode", False)))
     category = str(escape(flask_request.args.get("category", None)))
     agency = str(escape(flask_request.args.get("agency", None)))
-    title = str(escape(flask_request.args.get("title", "")))
+    agency_name = str(escape(flask_request.args.get("agency_name", None)))
+    title = str(escape(flask_request.args.get("title", None)))
 
     if current_user.is_public:
         form = PublicUserRequestForm()
         template_suffix = "user.html"
-    elif current_user.is_anonymous:
-        form = AnonymousRequestForm()
-        template_suffix = "anon.html"
+    #elif current_user.is_anonymous:
+    #    form = AnonymousRequestForm()
+    #    template_suffix = "anon.html"
     elif current_user.is_agency:
         form = AgencyUserRequestForm()
         template_suffix = "agency.html"
     else:
-        raise InvalidUserException(current_user)
+        #raise InvalidUserException(current_user)
+        redirect(url_for("auth.login"))
 
     new_request_template = "request/new_request_" + template_suffix
 
     if flask_request.method == "POST":
+        if current_app.config['RECAPTCHA_ENABLED'] and not current_user.is_agency:
+            try:
+                # Verify recaptcha token and return error if failed
+                recaptcha_response = requests.post(
+                    url='https://www.google.com/recaptcha/api/siteverify?secret={}&response={}'
+                        .format(current_app.config["RECAPTCHA_PRIVATE_KEY"],
+                                flask_request.form["g-recaptcha-response"])).json()
+
+                if recaptcha_response['success'] is False or recaptcha_response['score'] < current_app.config[
+                    "RECAPTCHA_THRESHOLD"]:
+                    current_app.logger.exception("Recaptcha failed to verify response.\n\n{}".format(recaptcha_response))
+                    flash('Recaptcha failed, please try again.', category='danger')
+                    return render_template(
+                        new_request_template,
+                        form=form,
+                        kiosk_mode=kiosk_mode,
+                        category=category,
+                        agency=agency,
+                        title=title,
+                    )
+            except:
+                current_app.logger.exception("Recaptcha failed to get a response.")
+                flash('Recaptcha failed, please try again.', category='danger')
+                return render_template(
+                    new_request_template,
+                    form=form,
+                    kiosk_mode=kiosk_mode,
+                    category=category,
+                    agency=agency,
+                    title=title,
+                )
+
         # validate upload with no request id available
         upload_path = None
         if form.request_file.data:
@@ -107,14 +140,32 @@ def new():
                 )
 
         custom_metadata = json.loads(
-            flask_request.form.get("custom-request-forms-data", {})
+            flask_request.form.get("custom-request-forms-data", '{}')
         )
+        # validate that custom_metadata JSON has data if custom request forms are enabled for the agency
+        agency_ein = (form.request_agency.data
+                      if form.request_agency.data != "None"
+                      else current_user.default_agency_ein)
+        agency_object = Agencies.query.filter_by(ein=agency_ein).first()
+        if agency_object.agency_features["custom_request_forms"]["enabled"] and not custom_metadata:
+            flash('An unexpected error occurred. Please reload the page and try submitting your request again.',
+                  category='danger')
+            return redirect(url_for("request.new"))
+        # validate that form_name exists in custom_metadata JSON
+        for key,value in custom_metadata.items():
+            form_name = value.get('form_name', None)
+            if not form_name:
+                flash('An unexpected error occurred. Please try submitting your request again.', category='danger')
+                return redirect(url_for("request.new"))
         tz_name = (
             escape(flask_request.form["tz-name"])
             if flask_request.form["tz-name"]
             else current_app.config["APP_TIMEZONE"]
         )
         if current_user.is_public:
+            if current_user.first_name == '' or current_user.last_name == '':
+                flash('Missing first or last name. Please update your name on the Profile page.', category='danger')
+                return redirect(url_for("request.new"))
             request_id = create_request(
                 escape(form.request_title.data),
                 escape(form.request_description.data),
@@ -204,6 +255,7 @@ def new():
         kiosk_mode=kiosk_mode,
         category=category,
         agency=agency,
+        agency_name=agency_name,
         title=title,
     )
 
@@ -234,14 +286,12 @@ def view(request_id):
     """
     try:
         current_request = Requests.query.filter_by(id=request_id).one()
-        assert current_request.agency.is_active
+        assert current_request.agency.is_active or current_request.status is request_status.CLOSED
     except NoResultFound:
         print("Request with id '{}' does not exist.".format(request_id))
-        sentry.captureException()
         return abort(404)
     except AssertionError:
         print("Request belongs to inactive agency.")
-        sentry.captureException()
         return abort(404)
 
     holidays = sorted(
@@ -457,18 +507,11 @@ def get_agencies_as_choices():
             ],
             key=lambda x: x[1],
         )
+        choices.insert(0, ("", ""))
     else:
-        choices = sorted(
-            [
-                (agencies.ein, agencies.name)
-                for agencies in Agencies.query.all()
-                if agencies.ein not in HIDDEN_AGENCIES
-            ],
-            key=lambda x: x[1],
-        )
-    choices.insert(
-        0, ("", "")
-    )  # Insert blank option at the beginning of choices to prevent auto selection
+        # Don't populate agency choices until a category is selected
+        choices = []
+        choices.insert(0, ("", "Please select a category first.")) # Insert blank option at the beginning of choices to prevent auto selection
     return jsonify(choices)
 
 
@@ -482,6 +525,23 @@ def contact_agency(request_id):
     form = ContactAgencyForm(current_request)
     del form.subject
     if form.validate_on_submit():
+        if current_app.config['RECAPTCHA_ENABLED'] and not current_user.is_agency:
+            try:
+                # Verify recaptcha token and return error if failed
+                recaptcha_response = requests.post(
+                    url='https://www.google.com/recaptcha/api/siteverify?secret={}&response={}'
+                        .format(current_app.config["RECAPTCHA_PRIVATE_KEY"],
+                                flask_request.form["g-recaptcha-response"])).json()
+
+                if recaptcha_response['success'] is False or recaptcha_response['score'] < current_app.config[
+                    "RECAPTCHA_THRESHOLD"]:
+                    current_app.logger.exception("Recaptcha failed to verify response.\n\n{}".format(recaptcha_response))
+                    flash('Recaptcha failed, please try again.', category='danger')
+                    return redirect(url_for("request.view", request_id=request_id))
+            except:
+                current_app.logger.exception("Recaptcha failed to get a response.")
+                flash('Recaptcha failed, please try again.', category='danger')
+                return redirect(url_for("request.view", request_id=request_id))
         create_contact_record(
             current_request,
             flask_request.form["first_name"],
@@ -492,6 +552,7 @@ def contact_agency(request_id):
         )
         flash("Your message has been sent.", category="success")
     else:
+        current_app.logger.exception("Contact the agency error: {}\n\n{}".format(current_request.id, form.errors))
         flash(
             "There was a problem sending your message. Please try again.",
             category="danger",

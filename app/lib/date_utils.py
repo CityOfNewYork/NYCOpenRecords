@@ -3,7 +3,7 @@ from business_calendar import FOLLOWING
 from app import calendar
 from app.lib import NYCHolidays
 from flask import current_app
-from datetime import datetime
+from datetime import datetime, timedelta
 
 DEFAULT_YEARS_HOLIDAY_LIST = 5
 
@@ -88,7 +88,7 @@ def get_holidays_date_list(year_start, year_end=None):
 
 
 def get_release_date(initial_date, days_until_release, tz_name):
-    release_date = calendar.addbusdays(initial_date, days_until_release)
+    release_date = initial_date + timedelta(days=days_until_release)
     return utc_to_local(release_date, tz_name)
 
 

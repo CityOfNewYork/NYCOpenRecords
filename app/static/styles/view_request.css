@@ -130,3 +130,11 @@
 .tinymce-maxlength-error {
     color: #df0000;
 }
+
+.grecaptcha-badge {
+    visibility: hidden;
+}
+
+select[multiple] {
+    overflow-x: scroll;
+}

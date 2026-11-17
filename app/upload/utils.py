@@ -13,8 +13,7 @@ import app.lib.file_utils as fu
 from flask import current_app
 from app import (
     celery,
-    upload_redis as redis,
-    sentry
+    upload_redis as redis
 )
 from app.lib.redis_utils import redis_set_file_metadata
 from app.constants import UPDATED_FILE_DIRNAME
@@ -151,7 +150,6 @@ def scan_upload(request_id, filepath, is_update=False, response_id=None):
     try:
         scan_file(filepath)
     except VirusDetectedException:
-        sentry.captureException()
         redis.delete(key)
     else:
         # store file metadata in redis
@@ -177,7 +175,6 @@ def complete_upload(request_id, quarantine_path, filename):
             try:
                 fu.makedirs(dst_dir)
             except OSError as e:
-                sentry.captureException()
                 # in the time between the call to fu.exists
                 # and fu.makedirs, the directory was created
                 current_app.logger.error("OS Error: {}".format(e.args))

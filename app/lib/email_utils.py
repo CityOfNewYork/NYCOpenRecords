@@ -18,7 +18,7 @@ import os
 from flask import current_app, render_template
 from flask_mail import Message
 
-from app import mail, celery, sentry
+from app import mail, celery
 from app.lib.file_utils import os_get_mime_type
 from app.models import (
     Agencies,
@@ -31,12 +31,11 @@ def send_async_email(msg):
     try:
         mail.send(msg)
     except Exception as e:
-        sentry.captureException()
         current_app.logger.exception("Failed to Send Email {} : {}".format(msg, e))
 
 
-def send_contact_email(subject, recipients, body, sender):
-    msg = Message(subject, recipients, body, sender=sender)
+def send_contact_email(subject, recipients, body, sender, reply_to):
+    msg = Message(subject, recipients, body, sender=sender, reply_to=reply_to)
     send_async_email.delay(msg)
 
 

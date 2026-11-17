@@ -30,9 +30,9 @@
                         The <strong>{{ key }}</strong> was changed from:
                     </span>
                 </p>
-                <p style="padding-left: 30px;"><span class="mceNonEditable"> {{ response_data.data_old[key] }} </span></p>
+                <p style="padding-left: 30px;"><span class="mceNonEditable"> {{ response_data.data_old[key] | safe }} </span></p>
                 <p><span class="mceNonEditable"> to: <span class="mceNonEditable"></p>
-                <p style="padding-left: 30px;"><span class="mceNonEditable"> {{ response_data.data_new[key] }} </span></p>
+                <p style="padding-left: 30px;"><span class="mceNonEditable"> {{ response_data.data_new[key] | safe }} </span></p>
             {% endfor %}
         {% endif %}
         {% if agency %}

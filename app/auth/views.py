@@ -184,7 +184,7 @@ def saml():
     onelogin_request = prepare_onelogin_request(request)
 
     # 2. Create OneLogin Object to handle SAML Workflow
-    onelogin_saml_auth = init_saml_auth(onelogin_request)
+    onelogin_saml_auth = init_saml_auth(onelogin_request, 'nycid')
 
     # 3. Handle request based on GET parameter.
     if "sso" in request.args or len(request.args) == 0:
@@ -197,6 +197,8 @@ def saml():
     elif "acs" in request.args:
         return saml_acs(onelogin_saml_auth, onelogin_request)
     elif "slo" in request.args:
+        if current_user.is_anonymous:
+            return redirect(url_for("main.index"))
         return redirect(saml_slo(onelogin_saml_auth))
     elif "sls" in request.args:
         user_guid = current_user.guid if not current_user.is_anonymous else None
@@ -209,6 +211,34 @@ def saml():
         return redirect(url_for("main.index"))
 
 
+@auth.route("/azure", methods=["GET", "POST"])
+@csrf.exempt
+def azure():
+    # 1. Convert Flask Request object to OneLogin Request Dictionary
+    onelogin_request = prepare_onelogin_request(request)
+
+    # 2. Create OneLogin Object to handle SAML Workflow
+    onelogin_saml_auth = init_saml_auth(onelogin_request, 'entraid')
+
+    if 'sso' in request.args:
+        return redirect(onelogin_saml_auth.login())
+    elif 'acs' in request.args:
+        return saml_acs(onelogin_saml_auth, onelogin_request)
+    elif 'slo' in request.args:
+        if current_user.is_anonymous:
+            return redirect(url_for("main.index"))
+        return redirect(saml_slo(onelogin_saml_auth))
+    elif 'sls' in request.args:
+        user_guid = current_user.guid if not current_user.is_anonymous else None
+        return saml_sls(onelogin_saml_auth, user_guid)
+    else:
+        flash(
+            "Oops! Something went wrong. Please try to perform your action again later.",
+            category="warning",
+        )
+    return redirect(url_for("main.index"))
+
+
 @auth.route("/metadata/", methods=["GET"])
 def metadata():
     """
@@ -218,7 +248,16 @@ def metadata():
         HTTP Response (werkzeug.wrappers.Response): XML SP Metadata
     """
     req = prepare_onelogin_request(request)
-    saml_auth = init_saml_auth(req)
+    idp = request.args.get('idp', 'nycid')
+    if idp:
+        saml_auth = init_saml_auth(req, idp)
+    else:
+        flash(
+            "Oops! Something went wrong. Please try to perform your action again later.",
+            category="warning",
+        )
+        return redirect(url_for("main.index"))
+
     settings = saml_auth.get_settings()
     metadata = settings.get_sp_metadata()
     errors = settings.validate_metadata(metadata)
@@ -259,6 +298,8 @@ def ldap_login():
 
             if authenticated:
                 login_user(user)
+                current_app.session_interface.regenerate(session)
+                session['register_session'] = True
                 session["user_id"] = current_user.get_id()
 
                 create_auth_event(
@@ -359,6 +400,8 @@ def local_login():
 
         if user is not None:
             login_user(user)
+            current_app.session_interface.regenerate(session)
+            session['register_session'] = True
             session["user_id"] = current_user.get_id()
 
             create_auth_event(

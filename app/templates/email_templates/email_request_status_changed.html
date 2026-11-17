@@ -10,7 +10,7 @@
                     {% if request.custom_metadata %}
                         <li>Request Type: {{ request.description }}</li>
                     {% endif %}
-                    <li>Requester Last Name: {{ request.requester.last_name | title | safe }}</li>
+                    <li>Requester Name: {{ request.requester_name | title | safe }}</li>
                     <li>Request Opened: {{ request.date_submitted.strftime('%m/%d/%y') }}</li>
                 </ul>
             </li>
@@ -29,7 +29,7 @@
                         {% if request.custom_metadata %}
                             <li>Request Type: {{ request.description }}</li>
                         {% endif %}
-                        <li>Requester Last Name: {{ request.requester.last_name | title | safe }}</li>
+                        <li>Requester Name: {{ request.requester_name | title | safe }}</li>
                         <li>Request Opened: {{ request.date_submitted.strftime('%m/%d/%y') }}</li>
                     </ul>
                 </li>
@@ -55,7 +55,7 @@
                     {% if request.custom_metadata %}
                         <li>Request Type: {{ request.description }}</li>
                     {% endif %}
-                    <li>Requester Last Name: {{ request.requester.last_name | title | safe }}</li>
+                    <li>Requester Name: {{ request.requester_name | title | safe }}</li>
                     <li>Request Opened: {{ request.date_submitted.strftime('%m/%d/%y') }}</li>
                 </ul>
             </li>
@@ -81,7 +81,7 @@
                         {% if request.custom_metadata %}
                             <li>Request Type: {{ request.description }}</li>
                         {% endif %}
-                        <li>Requester Last Name: {{ request.requester.last_name | title | safe }}</li>
+                        <li>Requester Name: {{ request.requester_name | title | safe }}</li>
                         <li>Request Opened: {{ request.date_submitted.strftime('%m/%d/%y') }}</li>
                     </ul>
                 </li>

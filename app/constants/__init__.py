@@ -3,12 +3,14 @@ from app.constants import response_type, determination_type, event_type
 ACKNOWLEDGMENT_PERIOD_LENGTH = 5
 
 CATEGORIES = [
-    ('', 'All'),
+    ('', ''),
     ('Business', 'Business'),
     ('Civic Services', 'Civic Services'),
+    ('Community Board', 'Community Board'),
     ('Culture & Recreation', 'Culture & Recreation'),
     ('Education', 'Education'),
     ('Environment', 'Environment'),
+    ('Equity', 'Equity'),
     ('Health', 'Health'),
     ('Housing & Development', 'Housing & Development'),
     ('Public Safety', 'Public Safety'),
@@ -80,7 +82,7 @@ DELETED_FILE_DIRNAME = 'deleted'
 RESPONSES_INCREMENT = 10
 EVENTS_INCREMENT = 10
 
-DEFAULT_RESPONSE_TOKEN_EXPIRY_DAYS = 20
+DEFAULT_RESPONSE_TOKEN_EXPIRY_DAYS = 14
 
 ES_DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S"  # strict_date_hour_minute_second
 

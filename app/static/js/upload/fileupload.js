@@ -33,8 +33,8 @@ function bindFileUpload(target,
         formData: for_update ? {update: true, response_id: response_id} : {},
         uploadTemplateId: uploadTemplateId,
         downloadTemplateId: downloadTemplateId,
-        maxChunkSize: 512000,  // 512 kb
-        maxFileSize: 500000000, // 500 mb
+        maxChunkSize: 104857600, // 100 mb
+        maxFileSize: 1073741824, // 1 gb
         // maxNumberOfFiles: isIE ? 10 : 1000,
         chunksend: function (e, data) {
             // stop sending chunks if abort signaled
@@ -184,7 +184,8 @@ function deleteUpload(request_id,
                       updated_only,
                       quarantined_only) {
     /*
-    Send a DELETE request to the upload endpoint.
+    Send a POST request to the upload endpoint.
+    NOTE: Changed DELETE to POST request because of Akami limitation.
      */
     var data = {};
     if (updated_only) {
@@ -195,7 +196,7 @@ function deleteUpload(request_id,
     }
 
     $.ajax({
-        type: "DELETE",
+        type: "POST",
         url: sprintf("/upload/request/%s/%s",
             request_id, filecode),
         data: data

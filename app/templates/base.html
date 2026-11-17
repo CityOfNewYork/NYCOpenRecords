@@ -29,7 +29,7 @@
             function googleTranslateElementInit() {
                 new google.translate.TranslateElement({
                     pageLanguage: 'en',
-                    layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+                    layout: google.translate.TranslateElement.InlineLayout.VERTICAL
                 }, 'google_translate_element');
             }
         </script>
@@ -44,17 +44,7 @@
                 </a>
             </div>
             <div class="col-sm-2">
-                <div id="google_translate_element">
-                    <div class="skiptranslate goog-te-gadget" dir="ltr">
-                        <div id=":0.targetLanguage" class="goog-te-gadget-simple"
-                             style="white-space: nowrap; border:none;"><span style="vertical-align: middle;"><a
-                                role="menu" class="goog-te-menu-value2" href="javascript:void(0)"
-                                aria-label="Translate"><span
-                                class="translate-text">Translate</span><span
-                                style="border-left: 1px solid rgb(187, 187, 187);padding-right:5px;">​</span><span
-                                style="color: #666;">▼</span></a></span></div>
-                    </div>
-                </div>
+                <div id="google_translate_element"></div>
             </div>
             <div class="col-sm-3"></div>
 
@@ -77,6 +67,7 @@
     {% endwith %}
 </div>
 {% include 'auth/concurrent_session_modal.html' %}
+{% include 'auth/missing_name_modal.html' %}
 <div class="wrapper">
     {% block content %}
     {% endblock %}
@@ -84,6 +75,16 @@
 <div class="footer-wrapper">
     {% include "_nyc_gov_footer.html" %}
 </div>
+{% if config['GOOGLE_ANALYTICS_ENABLED'] %}
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id={{ config['GOOGLE_ANALYTICS_ID'] }}"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag("js", new Date());
+  gtag("config", "{{ config['GOOGLE_ANALYTICS_ID'] }}");
+</script>
+{% endif %}
 <script type="text/javascript"
         src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery.js') }}"></script>
@@ -92,7 +93,7 @@
 <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery-ui.js') }}"></script>
 <script type="text/javascript" src="{{ url_for('static', filename='js/request/main.js') }}"></script>
 <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jstz.min.js') }}"></script>
-<script type="text/javascript" src="{{ url_for('static', filename='js/plugins/session-timeout.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/plugins/bootstrap-session-timeout.min.js') }}"></script>
 {% include 'base.js.html' %}
 {% block custom_script %}
 {% endblock %}

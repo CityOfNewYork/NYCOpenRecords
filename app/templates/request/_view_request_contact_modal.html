@@ -8,7 +8,7 @@
             </div>
             <div class="modal-body">
                 <form id="contact-form" role="form" action="/request/contact/{{ request.id }}" method="POST"
-                    data-parsley-focus="first">
+                    data-parsley-focus="first" onsubmit="submit.disabled = true; return true;">
                     {{ contact_agency_form.csrf_token }}
 
                     {{ contact_agency_form.first_name.label }}
@@ -34,7 +34,18 @@
                     <p id="message-character-count" class="character-counter">5000 characters remaining</p>
 
                     <br/>
-                    {{ contact_agency_form.submit(id="submit") }}
+                    {% if config['RECAPTCHA_ENABLED'] %}
+                        <input id="send"
+                               class="g-recaptcha"
+                               value="Send"
+                               aria-label="Send"
+                               type="submit"
+                               data-sitekey='{{ config['RECAPTCHA_PUBLIC_KEY'] }}'
+                               data-callback='onSubmitRequestInquiry'
+                               data-action='newRequestInquiry'>
+                    {% else %}
+                        {{ contact_agency_form.submit(id="submit") }}
+                    {% endif %}
                 </form>
             </div>
         </div>

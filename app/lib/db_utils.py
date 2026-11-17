@@ -4,7 +4,7 @@
     synopsis: Handles the functions for database control
 """
 from flask import current_app
-from app import db, sentry
+from app import db
 from app.models import Agencies, Requests
 from app.constants import HIDDEN_AGENCIES
 from sqlalchemy.exc import SQLAlchemyError
@@ -30,7 +30,6 @@ def create_object(obj):
         db.session.add(obj)
         db.session.commit()
     except SQLAlchemyError:
-        sentry.captureException()
         db.session.rollback()
         current_app.logger.exception("Failed to CREATE {}".format(obj))
         return None
@@ -72,7 +71,6 @@ def update_object(data, obj_type, obj_id, es_update=True):
         try:
             db.session.commit()
         except SQLAlchemyError:
-            sentry.captureException()
             db.session.rollback()
             current_app.logger.exception("Failed to UPDATE {}".format(obj))
         else:
@@ -95,7 +93,6 @@ def delete_object(obj):
         db.session.commit()
         return True
     except SQLAlchemyError:
-        sentry.captureException()
         db.session.rollback()
         current_app.logger.exception("Failed to DELETE {}".format(obj))
         return False
@@ -115,7 +112,6 @@ def bulk_delete(query):
         db.session.commit()
         return num_deleted
     except SQLAlchemyError:
-        sentry.captureException()
         db.session.rollback()
         current_app.logger.exception("Failed to BULK DELETE {}".format(query))
         return 0
@@ -131,7 +127,6 @@ def get_object(obj_type, obj_id):
     try:
         return obj_type.query.get(obj_id)
     except SQLAlchemyError:
-        sentry.captureException()
         db.session.rollback()
         current_app.logger.exception('Error searching "{}" table for id {}'.format(
             obj_type.__tablename__, obj_id))

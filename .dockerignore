@@ -1,0 +1,47 @@
+# Keep secrets, local state and non-runtime files out of the image.
+
+# Secrets and local config
+.env
+.env.*
+instance/saml/**
+!instance/saml/**/*.example
+**/*.pem
+**/*.key
+
+# VCS, editors, OS
+.git
+.github
+.gitignore
+.idea
+.vscode
+.DS_Store
+
+# Python artifacts and local environments
+**/__pycache__
+**/*.py[cod]
+.venv
+venv
+.pytest_cache
+.coverage
+htmlcov
+
+# Local runtime data
+logs
+quarantine
+data_test
+
+# Container and tooling files
+Dockerfile*
+.dockerignore
+docker-compose*.yml
+compose.yaml
+.python-version
+
+# Docs, tests and leftovers not needed at runtime
+docs
+tests
+*.md
+*.pdf
+**/*.orig
+build_scripts
+.travis.yml

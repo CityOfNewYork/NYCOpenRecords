@@ -6,14 +6,14 @@
 
 """
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from urllib.parse import urljoin, urlencode
 from lxml.html.clean import clean_html
 
 import os
 import re
 from abc import ABCMeta, abstractmethod
-from cached_property import cached_property
+from functools import cached_property
 from flask import (
     current_app,
     request as flask_request,
@@ -21,15 +21,14 @@ from flask import (
     render_template_string,
     url_for,
     jsonify,
-    Markup,
-    escape
 )
+from markupsafe import Markup, escape
 from flask_login import current_user
 from sqlalchemy.orm import joinedload
 from werkzeug.utils import secure_filename
 
 import app.lib.file_utils as fu
-from app import email_redis, calendar, sentry
+from app import email_redis, calendar
 from app.auth.utils import find_user_by_email
 from app.constants import (
     event_type,
@@ -114,7 +113,6 @@ def add_file(request_id, filename, title, privacy, is_dataset, dataset_descripti
         size = fu.getsize(path)
         mime_type = fu.get_mime_type(path)
         hash_ = fu.get_hash(path)
-        sentry.captureException()
 
     try:
         response = Files(
@@ -135,7 +133,6 @@ def add_file(request_id, filename, title, privacy, is_dataset, dataset_descripti
 
         return response
     except DuplicateFileException as e:
-        sentry.captureException()
         return str(e)
 
 
@@ -275,8 +272,7 @@ def add_denial(request_id, reason_ids, content, method, letter_template_id):
         else:
             update_vals['date_closed'] = datetime.utcnow()
         if not request.privacy['agency_request_summary'] and request.agency_request_summary is not None:
-            update_vals['agency_request_summary_release_date'] = calendar.addbusdays(datetime.utcnow(),
-                                                                                     RELEASE_PUBLIC_DAYS)
+            update_vals['agency_request_summary_release_date'] = datetime.utcnow() + timedelta(days=RELEASE_PUBLIC_DAYS)
             update_object(
                 update_vals,
                 Requests,
@@ -374,8 +370,7 @@ def add_closing(request_id, reason_ids, content, method, letter_template_id):
         else:
             update_vals['date_closed'] = datetime.utcnow()
         if not request.privacy['agency_request_summary'] and request.agency_request_summary is not None:
-            update_vals['agency_request_summary_release_date'] = calendar.addbusdays(datetime.utcnow(),
-                                                                                     RELEASE_PUBLIC_DAYS)
+            update_vals['agency_request_summary_release_date'] = datetime.utcnow() + timedelta(days=RELEASE_PUBLIC_DAYS)
             update_object(
                 update_vals,
                 Requests,
@@ -450,6 +445,87 @@ def add_closing(request_id, reason_ids, content, method, letter_template_id):
                                    request_id=request_id,
                                    reason="Request is already closed or has not been acknowledged")
 
+def add_closing_cli(request_id, reason_text, date_closed, send_emails):
+    """
+    Create and store a closing-determination response for the specified request and update the request accordingly.
+    Meant to be used with the CLI command close_requests
+
+    :param request_id: FOIL request ID
+    :param reason_text: reason text for closing
+    :param date_closed: date the request is closed
+    :param send_emails: boolean to determine if closing emails should be sent
+    """
+    request = Requests.query.filter_by(id=request_id).one()
+    if request.status != request_status.CLOSED:
+        previous_status = request.status
+        previous_date_closed = request.date_closed.isoformat() if request.date_closed else None
+        update_vals = {'status': request_status.CLOSED}
+        if date_closed:
+            update_vals['date_closed'] = date_closed
+        else:
+            if not calendar.isbusday(datetime.utcnow()) or datetime.utcnow().date() < request.date_submitted.date():
+                update_vals['date_closed'] = get_next_business_day()
+            else:
+                update_vals['date_closed'] = datetime.utcnow()
+        if not request.privacy['agency_request_summary'] and request.agency_request_summary is not None:
+            update_vals['agency_request_summary_release_date'] = datetime.utcnow() + timedelta(days=RELEASE_PUBLIC_DAYS)
+            update_object(
+                update_vals,
+                Requests,
+                request_id,
+                es_update=False
+            )
+        else:
+            update_object(
+                update_vals,
+                Requests,
+                request_id,
+                es_update=False
+            )
+        create_request_info_event(
+            request_id,
+            type_=event_type.REQ_STATUS_CHANGED,
+            previous_value={'status': previous_status, 'date_closed': previous_date_closed},
+            new_value={'status': request.status, 'date_closed': request.date_closed.isoformat()}
+        )
+
+        if not calendar.isbusday(datetime.utcnow()) or datetime.utcnow().date() < request.date_submitted.date():
+            # push the closing date to the next business day if it is a weekend/holiday
+            # or if it is before the date submitted
+            response = Determinations(
+                request_id,
+                RELEASE_AND_PUBLIC,
+                determination_type.CLOSING,
+                reason_text,
+                date_modified=get_next_business_day(),
+                release_date=datetime.utcnow()
+            )
+        else:
+            response = Determinations(
+                request_id,
+                RELEASE_AND_PUBLIC,
+                determination_type.CLOSING,
+                reason_text,
+                date_modified=date_closed if date_closed else datetime.utcnow(),
+                release_date=date_closed if date_closed else datetime.utcnow()
+            )
+        create_object(response)
+        create_response_event(event_type.REQ_CLOSED, response)
+        request.es_update()
+
+        if send_emails:
+            page = urljoin(flask_request.host_url, url_for('request.view', request_id=request_id))
+            email_content = render_template('email_templates/email_response_closing_cli.html',
+                                            request_id=request_id,
+                                            agency_name=request.agency.name,
+                                            page=page,
+                                            reason=reason_text)
+            email_id = _send_response_email(request_id,
+                                            RELEASE_AND_PUBLIC,
+                                            email_content,
+                                            'Request {} Closed'.format(request_id))
+            _create_communication_method(response.id, email_id, response_type.EMAIL)
+
 
 def add_quick_closing(request_id, days, date, tz_name, content):
     """Create and store an acknowledgement-determination response followed by a closing-determination response for
@@ -506,8 +582,7 @@ def add_quick_closing(request_id, days, date, tz_name, content):
         else:
             update_vals['date_closed'] = datetime.utcnow()
         if not request.privacy['agency_request_summary'] and request.agency_request_summary is not None:
-            update_vals['agency_request_summary_release_date'] = calendar.addbusdays(datetime.utcnow(),
-                                                                                     RELEASE_PUBLIC_DAYS)
+            update_vals['agency_request_summary_release_date'] = datetime.utcnow() + timedelta(days=RELEASE_PUBLIC_DAYS)
             update_object(
                 update_vals,
                 Requests,
@@ -1092,6 +1167,9 @@ def _acknowledgment_email_handler(request_id, data, page, agency_name, email_tem
     else:
         description_hidden_by_default = False
 
+    # Determine if point of contact should be used
+    use_point_of_contact = request.agency.agency_features.get('use_point_of_contact', False)
+
     if acknowledgment is not None:
         acknowledgment = json.loads(acknowledgment)
         default_content = True
@@ -1102,11 +1180,13 @@ def _acknowledgment_email_handler(request_id, data, page, agency_name, email_tem
             acknowledgment['date'],
             data['tz_name'])
         info = acknowledgment['info'].strip() or None
+        point_of_contact = assign_point_of_contact(acknowledgment.get('point_of_contact', None))
     else:
         default_content = False
         content = data['email_content']
         date = None
         info = None
+        point_of_contact = None
     return jsonify({"template": render_template(email_template,
                                                 custom_request_forms_enabled=custom_request_forms_enabled,
                                                 default_content=default_content,
@@ -1117,7 +1197,9 @@ def _acknowledgment_email_handler(request_id, data, page, agency_name, email_tem
                                                 agency_name=agency_name,
                                                 date=date,
                                                 info=info,
-                                                page=page),
+                                                page=page,
+                                                use_point_of_contact=use_point_of_contact,
+                                                point_of_contact=point_of_contact),
                     "header": header}), 200
 
 
@@ -2459,7 +2541,7 @@ def send_file_email(request_id, release_public_links, release_private_links, pri
     ).options(
         joinedload(Requests.agency)
     ).filter_by(id=request_id).one()
-    subject = 'Response Added to {} - File'.format(request_id)
+    subject = 'Response Added to {} - Record'.format(request_id)
     bcc = get_assigned_users_emails(request_id)
     if release_public_links or release_private_links:
         release_date = get_release_date(datetime.utcnow(), RELEASE_PUBLIC_DAYS, tz_name).strftime("%A, %B %d, %Y")
@@ -2472,7 +2554,7 @@ def send_file_email(request_id, release_public_links, release_private_links, pri
                                                                         ))
         safely_send_and_add_email(request_id,
                                   email_content_requester,
-                                  'Response Added to {} - File'.format(request_id),
+                                  'Response Added to {} - Record'.format(request_id),
                                   to=[request.requester.email],
                                   bcc=bcc,
                                   reply_to=request.agency.default_email)
@@ -2485,7 +2567,7 @@ def send_file_email(request_id, release_public_links, release_private_links, pri
                                                    page=page)
             safely_send_and_add_email(request_id,
                                       email_content_agency,
-                                      'File(s) Added to {}'.format(request_id),
+                                      'Record(s) Added to {}'.format(request_id),
                                       bcc=bcc)
     elif private_links:
         email_content_agency = email_content.replace(replace_string,
@@ -2602,10 +2684,8 @@ def safely_send_and_add_email(request_id,
         send_email(subject, to=to, bcc=bcc, reply_to=reply_to, template=template, email_content=email_content, **kwargs)
         return _add_email(request_id, subject, email_content, to=to, bcc=bcc)
     except AssertionError:
-        sentry.captureException()
         current_app.logger.exception('Must include: To, CC, or BCC')
     except Exception as e:
-        sentry.captureException()
         current_app.logger.exception("Error: {}".format(e))
 
 
@@ -2788,8 +2868,7 @@ class ResponseEditor(metaclass=ABCMeta):
 
     def get_response_release_date(self):
         return {
-            response_privacy.RELEASE_AND_PUBLIC: calendar.addbusdays(
-                datetime.utcnow(), RELEASE_PUBLIC_DAYS),
+            response_privacy.RELEASE_AND_PUBLIC: datetime.utcnow() + timedelta(days=RELEASE_PUBLIC_DAYS),
             response_privacy.RELEASE_AND_PRIVATE: None,
             response_privacy.PRIVATE: None,
         }[self.data_new.get('privacy')]
@@ -2875,7 +2954,6 @@ class RespFileEditor(ResponseEditor):
                         size = fu.getsize(filepath)
                         mime_type = fu.get_mime_type(filepath)
                         hash_ = fu.get_hash(filepath)
-                        sentry.captureException()
                     self.set_data_values('size',
                                          self.response.size,
                                          size)
@@ -2945,8 +3023,7 @@ class RespFileEditor(ResponseEditor):
                 else:
                     # extend expiration date
                     update_object(
-                        {'expiration_date': calendar.addbusdays(datetime.utcnow(),
-                                                                DEFAULT_RESPONSE_TOKEN_EXPIRY_DAYS)},
+                        {'expiration_date': datetime.utcnow() + timedelta(days=DEFAULT_RESPONSE_TOKEN_EXPIRY_DAYS)},
                         ResponseTokens,
                         self.response.token.id
                     )
