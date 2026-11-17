@@ -40,7 +40,7 @@ def downgrade():
     # Convert 'envelopes' and 'letters' type into 'note'
 
     op.execute(
-        "UPDATE responses SET type = 'note' WHERE type IN \('letters', 'envelopes'\)"
+        r"UPDATE responses SET type = 'note' WHERE type IN \('letters', 'envelopes'\)"
     )
     # Create a tempoary "_type" type, convert and drop the "new" type
     tmp_type.create(op.get_bind(), checkfirst=False)
